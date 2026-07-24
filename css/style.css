@@ -716,6 +716,41 @@
   }
   .zz-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+  /* ---------- REFERRAL POPUP ---------- */
+  .zz-referral-overlay{
+    position:fixed;inset:0;background:rgba(20,20,20,0);z-index:400;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    transition:background .25s ease;
+  }
+  .zz-referral-overlay.open{background:rgba(20,20,20,.55);}
+  .zz-referral-modal{
+    background:#fff;border-radius:8px;max-width:380px;width:100%;padding:36px 30px 30px;
+    text-align:center;position:relative;
+    transform:translateY(14px) scale(.97);opacity:0;transition:transform .25s ease, opacity .25s ease;
+  }
+  .zz-referral-overlay.open .zz-referral-modal{transform:translateY(0) scale(1);opacity:1;}
+  .zz-referral-close{
+    position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#999;
+  }
+  .zz-referral-close:hover{color:var(--black);}
+  .zz-referral-icon{font-size:32px;margin-bottom:14px;}
+  .zz-referral-modal h3{font-family:'Anton',sans-serif;font-size:19px;letter-spacing:.5px;margin-bottom:10px;}
+  .zz-referral-modal p{font-size:13px;color:#666;line-height:1.55;margin-bottom:20px;}
+  .zz-referral-code-box{
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    border:1.5px dashed var(--black);border-radius:6px;padding:14px 16px;margin-bottom:16px;
+  }
+  .zz-referral-code-box span{font-family:'Anton',sans-serif;font-size:18px;letter-spacing:1px;}
+  .zz-referral-code-box button{
+    background:var(--black);color:#fff;border:none;padding:8px 14px;border-radius:3px;
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;
+  }
+  .zz-referral-whatsapp{
+    display:inline-flex;align-items:center;gap:8px;color:#1f8a45;font-size:12.5px;font-weight:700;
+    text-decoration:underline;
+  }
+
   /* ---------- MINI CART DRAWER ---------- */
   .cart-drawer-list{display:flex;flex-direction:column;gap:16px;margin-top:20px;max-height:46vh;overflow-y:auto;}
   .cart-drawer-row{display:flex;gap:12px;align-items:center;}

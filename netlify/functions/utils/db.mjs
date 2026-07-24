@@ -93,7 +93,7 @@ export function serializeOrder(row, items) {
     payment: { method: row.payment_method },
     subtotal: Number(row.subtotal),
     shipping: Number(row.shipping),
-    discountPercent: row.discount_percent || 0,
+    referralDiscountAmount: Number(row.referral_discount_amount || 0),
     promoCode: row.promo_code || null,
     promoDiscountAmount: Number(row.promo_discount_amount || 0),
     total: Number(row.total),

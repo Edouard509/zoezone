@@ -45,7 +45,7 @@ async function createOrder(req) {
   const orderId = generateOrderId();
 
   // ---------- discount: a promo code (if given) takes precedence over the referral discount ----------
-  let discountPercent = 0;
+  let referralDiscountAmount = 0;
   let promoDiscountAmount = 0;
   let appliedPromoCode = null;
 
@@ -64,22 +64,22 @@ async function createOrder(req) {
       ? Math.round(subtotal * (Number(promo.discount_value) / 100) * 100) / 100
       : Math.min(Number(promo.discount_value), subtotal);
     appliedPromoCode = promo.code;
-  } else if (customer) {
-    const rows = await database.sql`SELECT pending_discount_percent FROM customers WHERE id = ${customer.sub} LIMIT 1`;
-    if (rows.length) discountPercent = rows[0].pending_discount_percent || 0;
+  } else {
+    const rows = await database.sql`SELECT pending_discount_amount FROM customers WHERE id = ${customer.sub} LIMIT 1`;
+    if (rows.length) referralDiscountAmount = Math.min(Number(rows[0].pending_discount_amount) || 0, subtotal);
   }
 
-  const discountedSubtotal = Math.round((subtotal * (1 - discountPercent / 100) - promoDiscountAmount) * 100) / 100;
+  const discountedSubtotal = Math.round((subtotal - referralDiscountAmount - promoDiscountAmount) * 100) / 100;
   const finalTotal = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
   await database.sql`
     INSERT INTO orders
       (id, customer_id, first_name, last_name, email, whatsapp, address, notes, lat, lng, payment_method,
-       subtotal, shipping, discount_percent, promo_code, promo_discount_amount, total, status)
+       subtotal, shipping, referral_discount_amount, promo_code, promo_discount_amount, total, status)
     VALUES
-      (${orderId}, ${customer ? customer.sub : null}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
+      (${orderId}, ${customer.sub}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
        ${location.lat}, ${location.lng}, ${payment.method},
-       ${subtotal}, ${shipping}, ${discountPercent}, ${appliedPromoCode}, ${promoDiscountAmount}, ${finalTotal}, 'pending')
+       ${subtotal}, ${shipping}, ${referralDiscountAmount}, ${appliedPromoCode}, ${promoDiscountAmount}, ${finalTotal}, 'pending')
   `;
 
   for (const item of items) {
@@ -94,8 +94,8 @@ async function createOrder(req) {
 
   if (appliedPromoCode) {
     await database.sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ${appliedPromoCode}`;
-  } else if (customer && discountPercent > 0) {
-    await database.sql`UPDATE customers SET pending_discount_percent = 0 WHERE id = ${customer.sub}`;
+  } else if (referralDiscountAmount > 0) {
+    await database.sql`UPDATE customers SET pending_discount_amount = 0 WHERE id = ${customer.sub}`;
   }
 
   const orderForEmail = {
@@ -113,7 +113,7 @@ async function createOrder(req) {
     fromEmail: 'orders@zoezone.co',
   });
 
-  return json({ id: orderId, discountPercent, promoDiscountAmount, subtotal: discountedSubtotal, total: finalTotal }, { status: 201 });
+  return json({ id: orderId, referralDiscountAmount, promoDiscountAmount, subtotal: discountedSubtotal, total: finalTotal }, { status: 201 });
 }
 
 async function getOrder(id, req) {

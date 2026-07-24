@@ -75,7 +75,11 @@ document.addEventListener('DOMContentLoaded', function () {
           errorEl.style.display = 'block';
           return;
         }
-        loadMe().then(function (me) { if (me) proceedToCheckout(me); });
+        loadMe().then(function (me) {
+          if (!me) return;
+          proceedToCheckout(me);
+          ZZShop.showReferralPopup(me.referralCode);
+        });
       })
       .catch(function () {
         submitBtn.disabled = false;
@@ -116,7 +120,11 @@ document.addEventListener('DOMContentLoaded', function () {
           errorEl.style.display = 'block';
           return;
         }
-        loadMe().then(function (me) { if (me) proceedToCheckout(me); });
+        loadMe().then(function (me) {
+          if (!me) return;
+          proceedToCheckout(me);
+          ZZShop.showReferralPopup(me.referralCode);
+        });
       })
       .catch(function () {
         submitBtn.disabled = false;
@@ -146,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ZZShop.trackEvent('begin_checkout', { currency: 'USD', value: ZZShop.cartSubtotal(), items: items });
     });
 
-    var pendingDiscountPercent = me.pendingDiscountPercent || 0;
+    var pendingDiscountAmount = me.pendingDiscountAmount || 0;
     var appliedPromo = null; // { code, discountType, discountValue } — overrides the referral discount when set
 
     ZZShop.ready.then(function () { renderSummary(); });
@@ -216,9 +224,9 @@ document.addEventListener('DOMContentLoaded', function () {
           ? Math.round(subtotal * (appliedPromo.discountValue / 100) * 100) / 100
           : Math.min(appliedPromo.discountValue, subtotal);
         discountLabel = 'Promo (' + appliedPromo.code + ')';
-      } else if (pendingDiscountPercent > 0) {
-        discountAmount = Math.round(subtotal * (pendingDiscountPercent / 100) * 100) / 100;
-        discountLabel = 'Referral Discount (' + pendingDiscountPercent + '%)';
+      } else if (pendingDiscountAmount > 0) {
+        discountAmount = Math.min(pendingDiscountAmount, subtotal);
+        discountLabel = 'Referral Discount';
       }
       var discountedSubtotal = subtotal - discountAmount;
 
@@ -419,6 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
           });
           ZZShop.setCart([]);
           showConfirmation(order);
+          setTimeout(function () { ZZShop.showReferralPopup(me.referralCode); }, 700);
         })
         .catch(function () {
           errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
