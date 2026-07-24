@@ -1,154 +1,125 @@
 # ZOEZONE — Deployment Guide
 
-Your site now has a real backend: a Postgres database (products, orders,
-customers, admin accounts), file storage for product photos, and a full
-admin panel at `/admin`. This guide gets it live on Netlify.
+## Current live setup
 
-## 1. First admin login
+| What | Where |
+|---|---|
+| Storefront | https://zoezone.co |
+| Admin panel | https://zoezone.co/admin/login.html |
+| GitHub repo | https://github.com/Edouard509/zoezone |
+| Netlify site | `zoezone-shop` (dashboard: https://app.netlify.com/projects/zoezone-shop) |
+| Database | Neon Postgres (connection string set as `DATABASE_URL` env var on Netlify) |
+| Emails | SendGrid, domain-authenticated for `zoezone.co` — welcome emails from `hello@zoezone.co`, order confirmations from `orders@zoezone.co` |
 
-A starter admin account is seeded automatically the first time the database
-migrations run:
+Everything below this point is how it was set up, kept for reference — e.g. if
+you ever need to redeploy from scratch, rotate credentials, or understand how
+a piece fits together.
 
-```
-Email:    admin@zoezone.com
-Password: mMAqPPi3wE0f
-```
+## 1. Admin login
 
-**Change this password immediately after your first login** — go to
-`/admin/settings.html` → Change Password. This seed password is sitting in
-plain text in your migration file (`netlify/database/migrations/0003_seed_admin.sql`)
-and in this guide, so treat it as burned the moment the site goes live.
+Change your password any time from **Settings** inside the admin panel
+(`/admin/settings.html`). The very first seed account (`admin@zoezone.com`,
+now retired — you already changed it) came from
+`netlify/database/migrations/0003_seed_admin.sql`.
 
-To add more admin staff accounts later, the fastest path is running one
-SQL statement against your database from the Netlify dashboard's database
-console (Neon), since there's no self-serve "invite admin" UI yet:
+To add more admin staff accounts, run one SQL statement against the database
+(via Neon's SQL console, or `node -e` locally with the `DATABASE_URL`), since
+there's no self-serve "invite admin" UI yet:
 
 ```sql
--- generate a bcrypt hash for the password first (see note below), then:
 INSERT INTO admin_users (email, password_hash, name)
 VALUES ('newperson@example.com', '<bcrypt-hash>', 'Their Name');
 ```
 
-To generate a bcrypt hash for a new password, run this locally (Node.js
-with `bcryptjs` already installed in this project):
+Generate the bcrypt hash first:
 
 ```bash
 node -e "console.log(require('bcryptjs').hashSync('their-new-password', 10))"
 ```
 
-## 2. Push this project to GitHub
+## 2. Git & Netlify
 
-Netlify deploys from a Git repository. Since this project isn't a repo yet:
-
-```bash
-git init
-git add .
-git commit -m "Initial commit — ZOEZONE storefront + backend"
-```
-
-Then create a new (private, recommended) repository on GitHub and push:
+The project is a GitHub repo (`Edouard509/zoezone`) connected to Netlify site
+`zoezone-shop`. Every `git push origin main` doesn't auto-deploy by itself
+here since deploys were done manually via `netlify deploy --prod` — to ship a
+future code change:
 
 ```bash
-git remote add origin https://github.com/<your-username>/<repo-name>.git
-git branch -M main
-git push -u origin main
+git add -A
+git commit -m "..."
+git push origin main
+netlify deploy --prod
 ```
 
-## 3. Connect the repo to Netlify
+(If you'd rather have Netlify auto-deploy on every push instead of running
+that last command manually, connect the repo under **Site configuration →
+Build & deploy → Continuous deployment** in the Netlify dashboard.)
 
-1. In the Netlify dashboard, click **Add new site → Import an existing project**.
-2. Choose GitHub, authorize if prompted, and select this repository.
-3. Build settings — leave as detected (this is a static site with Netlify
-   Functions, no build command needed):
-   - **Build command:** *(leave blank)*
-   - **Publish directory:** `.`
-4. Deploy the site.
+## 3. Database (Neon Postgres)
 
-## 4. Provision the database
+Connects directly to Neon (the same underlying database Netlify's own paid
+"Netlify DB" add-on uses — this project skips that paid wrapper and connects
+to Neon directly, free tier, no card required).
 
-This project connects directly to a **Neon Postgres** database (the same
-underlying database Netlify's own paid "Netlify DB" add-on uses — this
-project just skips that paid wrapper and connects to Neon straight, which
-has a free tier with no credit card required).
+- Connection string lives in the `DATABASE_URL` env var on Netlify.
+- Migrations live in `netlify/database/migrations/*.sql` and do **not**
+  auto-apply on deploy (that only happens with Netlify's own paid DB
+  product). Whenever you add a new migration file, apply it by running:
+  ```bash
+  DATABASE_URL="<the connection string>" npm run migrate
+  ```
+  The script tracks what's already applied in a `_migrations` table, so it's
+  always safe to re-run.
 
-1. Sign up at [neon.tech](https://neon.tech) (free, no card needed) and
-   create a new project.
-2. From the project dashboard, copy the **connection string** (looks like
-   `postgresql://user:password@ep-xxxx.neon.tech/dbname?sslmode=require`).
-3. Set it as an environment variable on your Netlify site:
-   ```bash
-   netlify env:set DATABASE_URL "postgresql://user:password@ep-xxxx.neon.tech/dbname?sslmode=require"
-   ```
-   (or add it via **Site configuration → Environment variables** in the
-   Netlify dashboard).
-4. Run the migrations once, from your local machine, using that same
-   connection string, to create every table and load your product catalog:
-   ```bash
-   DATABASE_URL="postgresql://user:password@ep-xxxx.neon.tech/dbname?sslmode=require" npm run migrate
-   ```
-   This applies, in order:
-   - `0001_init_schema.sql` — creates every table.
-   - `0002_seed_products.sql` — loads your full existing catalog (all
-     products, prices, and reviews) so the store isn't empty on day one.
-   - `0003_seed_admin.sql` — creates the starter admin login above.
+## 4. Environment variables
 
-   The script tracks what's already applied in a `_migrations` table, so
-   it's always safe to re-run — already-applied migrations are skipped.
-   Any time you add a new migration file later, just re-run `npm run migrate`
-   with the same `DATABASE_URL` to apply it.
+Set on the Netlify site (**Site configuration → Environment variables**):
 
-## 5. Set the JWT signing secret
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Neon Postgres connection string |
+| `JWT_SECRET` | Signs admin/customer session cookies — long random string |
+| `SENDGRID_API_KEY` | SendGrid API key, Mail Send permission only |
+| `SENDGRID_FROM_EMAIL` | Default "from" for welcome emails (`hello@zoezone.co`) |
 
-Admin and customer logins are signed with a JWT. In your Netlify site's
-**Site configuration → Environment variables**, add:
+Order confirmation emails explicitly send from `orders@zoezone.co` regardless
+of the `SENDGRID_FROM_EMAIL` default (set in `netlify/functions/orders.mjs`).
 
-```
-JWT_SECRET = <any long random string>
-```
+## 5. Email deliverability (SendGrid + domain authentication)
 
-Generate one with:
+`zoezone.co` is authenticated in SendGrid (SPF/DKIM via CNAME records added
+at Namecheap), which is why emails land in the inbox instead of spam —
+sending "from" a bare `@gmail.com` or unauthenticated domain gets junked by
+Gmail's DMARC policy regardless of SendGrid config.
 
-```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-```
+If you ever move DNS providers or need to re-authenticate, the required
+records are in SendGrid → **Settings → Sender Authentication**. Two rules
+that caused real headaches getting this right the first time:
+- Namecheap's **Host** field only wants the part *before* `.zoezone.co` —
+  typing the full hostname there creates a doubled `.zoezone.co.zoezone.co`
+  record that silently fails.
+- Delete Namecheap's default parking records (`www` CNAME to
+  `parkingpage.namecheap.com`, and the `@` URL Redirect record) — they
+  conflict with the real site/DNS records.
 
-Without this set, the site falls back to an insecure default secret — fine
-for testing, **not safe for a live store**. Set it before real customers
-place real orders.
+## 6. Custom domain (zoezone.co)
 
-## 6. Swap in your real payment details
+DNS at Namecheap points to Netlify:
+- `A` record: `@` → `75.2.60.5`
+- `CNAME` record: `www` → `zoezone-shop.netlify.app`
 
-`js/checkout.js` currently has placeholder business contact info at the
-top of the file:
+SSL is auto-provisioned by Netlify (Let's Encrypt) once DNS resolves
+correctly — no manual cert management needed.
 
-```js
-var BUSINESS_WHATSAPP_NUMBER = '18095551234'; // your real WhatsApp number, digits only
-var PAY_INFO = {
-  moncash: { label: 'MonCash', number: '+509 1234-5678', qr: true },
-  natcash: { label: 'NatCash', number: '+509 8765-4321', qr: true },
-  paypal:  { label: 'PayPal',  number: 'paypal.me/zoezoneshop', qr: false },
-  zelle:   { label: 'Zelle',   number: 'payments@zoezone.com', qr: false },
-  cashapp: { label: 'Cash App', number: '$ZoeZoneShop', qr: false }
-};
-```
+## 7. Payment details at checkout
 
-Replace every value with your actual WhatsApp number and payment handles,
-commit, and push — Netlify redeploys automatically.
+Real values are already wired into `js/checkout.js`:
+- WhatsApp: `+509 3789 3926`
+- MonCash: `+509 3789 3926`
+- PayPal: `paypal.me/LakouLakayLLC`
+- Zelle: `claudyedouard6@gmail.com`
 
-## 7. Go live
-
-Once deployed, Netlify gives you a URL like `random-name-123.netlify.app`.
-From **Site configuration → Domain management** you can either keep that
-or connect a custom domain you own.
-
-Test the full path before announcing you're live:
-1. Browse the catalog, add something to the cart, complete checkout with
-   each payment method — confirm the order shows up in `/admin/orders.html`.
-2. Sign up a test customer account on `/account.html`, confirm order
-   history appears there too.
-3. In `/admin/products.html`, add a test product with a photo, confirm it
-   appears on the relevant category page and in search — then delete it.
-4. Change the seeded admin password (step 1) if you haven't already.
+(NatCash and Cash App were removed since they aren't offered.)
 
 ## What the admin panel can do
 
@@ -160,11 +131,22 @@ Test the full path before announcing you're live:
   deleting it; assign categories (tops/bottoms/outerwear/accessories) and
   landing-page tags (The New Era, Best Seller).
 - **`/admin/orders.html`** — view every order placed, see customer contact
-  info, items, payment method, and delivery location; update order status
-  (pending → confirmed → shipped → delivered, or cancelled).
+  info (including email), items, payment method, and delivery location;
+  update order status (pending → confirmed → shipped → delivered, or
+  cancelled).
 - **`/admin/settings.html`** — change your own admin password.
 
 Every page under `/admin/*` is sent with `X-Robots-Tag: noindex, nofollow`
 so search engines won't index it, but it is not otherwise hidden — anyone
 with a login can sign in from the public URL, so keep admin credentials
 private.
+
+## Customer-facing emails
+
+- **Welcome email** (on signup) — from `hello@zoezone.co`, sent by
+  `netlify/functions/customer-signup.mjs`.
+- **Order confirmation** (on checkout) — from `orders@zoezone.co`, sent by
+  `netlify/functions/orders.mjs`. Checkout requires an email address for
+  this reason — every order, guest or logged-in, gets a confirmation.
+
+Both templates live in `netlify/functions/utils/email.mjs`.
