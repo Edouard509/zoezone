@@ -236,7 +236,39 @@
     if (backdrop) backdrop.classList.remove('active');
   }
 
+  function isComingSoon(p) {
+    return (p.categories || []).indexOf('tops') === -1;
+  }
+
+  function comingSoonCardHTML(p) {
+    var priceHTML = p.was
+      ? '<span class="was">$' + p.was.toFixed(2) + '</span><span class="now">$' + p.price.toFixed(2) + '</span>'
+      : '<span class="now">$' + p.price.toFixed(2) + '</span>';
+    var swatchesHTML = (p.swatchColors || []).map(function (c) {
+      return '<div class="swatch" style="background:' + c + ';"></div>';
+    }).join('');
+
+    return (
+      '<div class="card card-coming-soon" data-id="' + p.id + '">' +
+        '<div class="card-blur-wrap">' +
+          '<div class="card-media"' + (p.mediaStyle ? ' style="' + p.mediaStyle + '"' : '') + '>' +
+            '<div class="garment">' + p.art + '</div>' +
+          '</div>' +
+          '<div class="card-info">' +
+            '<div class="card-collection">' + p.collection + '</div>' +
+            '<div class="card-name">' + p.name + '</div>' +
+            '<div class="card-price">' + priceHTML + '</div>' +
+            '<div class="swatches">' + swatchesHTML + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="coming-soon-badge"><span>Coming Soon</span></div>' +
+      '</div>'
+    );
+  }
+
   function productCardHTML(p) {
+    if (isComingSoon(p)) return comingSoonCardHTML(p);
+
     var priceHTML = p.was
       ? '<span class="was">$' + p.was.toFixed(2) + '</span><span class="now">$' + p.price.toFixed(2) + '</span>'
       : '<span class="now">$' + p.price.toFixed(2) + '</span>';
@@ -324,7 +356,7 @@
     showToast: showToast, openCartDrawer: openCartDrawer,
     renderCartDrawer: renderCartDrawer, ensureCartDrawer: ensureCartDrawer,
     markWishedIcons: markWishedIcons, productCardHTML: productCardHTML,
-    setHeaderAvatar: setHeaderAvatar
+    setHeaderAvatar: setHeaderAvatar, isComingSoon: isComingSoon
   };
 
   document.addEventListener('DOMContentLoaded', function () {

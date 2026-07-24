@@ -31,6 +31,22 @@
     document.querySelector('.related-section').style.display = 'none';
   }
 
+  function showComingSoon(product) {
+    document.title = product.name + ' — Coming Soon — ZOEZONE';
+    document.querySelector('.pdp-grid').innerHTML =
+      '<div class="pdp-coming-soon-wrap" style="grid-column:1/-1;">' +
+        '<div class="pdp-coming-soon-media"' + (product.mediaStyle ? ' style="' + product.mediaStyle + '"' : '') + '>' +
+          '<div class="blur-inner garment">' + product.art + '</div>' +
+          '<div class="pdp-coming-soon-badge"><span>Coming Soon</span></div>' +
+        '</div>' +
+        '<h1 style="font-size:22px;margin-bottom:10px;">' + product.name + '</h1>' +
+        '<p style="color:#888;font-size:14px;margin-bottom:24px;">This item isn\'t available yet — check back soon, or browse what\'s live now.</p>' +
+        '<a href="tops.html" class="hero-cta">Shop Tops</a>' +
+      '</div>';
+    document.querySelector('.reviews-section').style.display = 'none';
+    document.querySelector('.related-section').style.display = 'none';
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var params = new URLSearchParams(window.location.search);
     var id = params.get('id');
@@ -40,6 +56,7 @@
       .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
         if (!res.ok) { showNotFound(); return; }
+        if ((res.data.categories || []).indexOf('tops') === -1) { showComingSoon(res.data); return; }
         renderProduct(res.data);
       })
       .catch(function () { showNotFound(); });
