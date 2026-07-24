@@ -9,6 +9,9 @@ function generateOrderId() {
 }
 
 async function createOrder(req) {
+  const customer = getCustomerFromRequest(req);
+  if (!customer) return json({ error: 'Please sign in to place an order.' }, { status: 401 });
+
   const body = await req.json().catch(() => null);
   if (!body) return json({ error: 'Invalid request body' }, { status: 400 });
 
@@ -39,7 +42,6 @@ async function createOrder(req) {
     }
   }
 
-  const customer = getCustomerFromRequest(req);
   const orderId = generateOrderId();
 
   // ---------- discount: a promo code (if given) takes precedence over the referral discount ----------
