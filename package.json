@@ -2,12 +2,13 @@
   "name": "zoezone",
   "version": "1.0.0",
   "private": true,
-  "description": "ZOEZONE storefront — static frontend + Netlify Functions backend (Netlify Database / Neon Postgres).",
+  "description": "ZOEZONE storefront — static frontend + Netlify Functions backend (Neon Postgres via direct connection).",
   "scripts": {
-    "dev": "netlify dev"
+    "dev": "netlify dev",
+    "migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
-    "@netlify/database": "^1.0.0",
+    "pg": "^8.13.1",
     "@netlify/blobs": "^8.1.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2"

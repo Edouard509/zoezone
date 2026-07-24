@@ -1,7 +1,34 @@
-import { getDatabase } from '@netlify/database';
+import pg from 'pg';
+
+let pool;
+function getPool() {
+  if (!pool) {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) throw new Error('DATABASE_URL environment variable is not set.');
+    pool = new pg.Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+  }
+  return pool;
+}
+
+// Mimics the @netlify/database tagged-template API (db.sql`...` -> Promise<rows[]>)
+// so every function file that calls `database.sql\`...\`` keeps working unchanged.
+function sqlTag(strings, ...values) {
+  let text = '';
+  const params = [];
+  strings.forEach((chunk, i) => {
+    text += chunk;
+    if (i < values.length) {
+      params.push(values[i]);
+      text += '$' + params.length;
+    }
+  });
+  return getPool()
+    .query(text, params)
+    .then((res) => res.rows);
+}
 
 export function db() {
-  return getDatabase();
+  return { sql: sqlTag };
 }
 
 export const COLOR_HEX = { black: '#1a1a1a', gray: '#8d8f92', cream: '#ece7de', denim: '#a9bccf', gold: '#c9a860' };

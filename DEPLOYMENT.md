@@ -66,29 +66,36 @@ git push -u origin main
 
 ## 4. Provision the database
 
-This project uses **Netlify DB** (Postgres via Neon), wired up through
-`@netlify/database`. From your local machine, with the Netlify CLI linked
-to this same site:
+This project connects directly to a **Neon Postgres** database (the same
+underlying database Netlify's own paid "Netlify DB" add-on uses — this
+project just skips that paid wrapper and connects to Neon straight, which
+has a free tier with no credit card required).
 
-```bash
-npm install -g netlify-cli   # if you don't have it yet
-netlify link                 # connect this folder to your Netlify site
-netlify database init        # provisions the Postgres database for this site
-```
+1. Sign up at [neon.tech](https://neon.tech) (free, no card needed) and
+   create a new project.
+2. From the project dashboard, copy the **connection string** (looks like
+   `postgresql://user:password@ep-xxxx.neon.tech/dbname?sslmode=require`).
+3. Set it as an environment variable on your Netlify site:
+   ```bash
+   netlify env:set DATABASE_URL "postgresql://user:password@ep-xxxx.neon.tech/dbname?sslmode=require"
+   ```
+   (or add it via **Site configuration → Environment variables** in the
+   Netlify dashboard).
+4. Run the migrations once, from your local machine, using that same
+   connection string, to create every table and load your product catalog:
+   ```bash
+   DATABASE_URL="postgresql://user:password@ep-xxxx.neon.tech/dbname?sslmode=require" npm run migrate
+   ```
+   This applies, in order:
+   - `0001_init_schema.sql` — creates every table.
+   - `0002_seed_products.sql` — loads your full existing catalog (all
+     products, prices, and reviews) so the store isn't empty on day one.
+   - `0003_seed_admin.sql` — creates the starter admin login above.
 
-This sets the `NETLIFY_DATABASE_URL` environment variable on your site
-automatically. Your migrations (`netlify/database/migrations/*.sql`) run
-automatically on every deploy — production and previews — in filename
-order. That means:
-
-- `0001_init_schema.sql` creates every table.
-- `0002_seed_products.sql` loads your full existing catalog (all products,
-  prices, and reviews) so the store isn't empty on day one.
-- `0003_seed_admin.sql` creates the starter admin login above.
-
-You don't need to run anything manually — just make sure `netlify database init`
-has been run once before (or after) your first deploy, and Netlify takes
-care of applying migrations on every deploy after that.
+   The script tracks what's already applied in a `_migrations` table, so
+   it's always safe to re-run — already-applied migrations are skipped.
+   Any time you add a new migration file later, just re-run `npm run migrate`
+   with the same `DATABASE_URL` to apply it.
 
 ## 5. Set the JWT signing secret
 
