@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account.html
+Disallow: /cart.html
+Disallow: /checkout.html
+Disallow: /wishlist.html
+
+Sitemap: https://zoezone.co/sitemap.xml

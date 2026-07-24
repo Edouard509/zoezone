@@ -47,6 +47,18 @@
 
   function renderProduct(product) {
     document.title = product.name + ' — ZOEZONE';
+    var pageDesc = (product.description || (product.name + ' — shop premium streetwear at ZOEZONE, made in Haiti.')).slice(0, 160);
+    var pageUrl = 'https://zoezone.co/product.html?id=' + encodeURIComponent(product.id);
+    var descTag = document.querySelector('meta[name="description"]');
+    if (descTag) descTag.setAttribute('content', pageDesc);
+    var ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', product.name + ' — ZOEZONE');
+    var ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', pageDesc);
+    var ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', pageUrl);
+    var canonicalTag = document.querySelector('link[rel="canonical"]');
+    if (canonicalTag) canonicalTag.setAttribute('href', pageUrl);
 
     // ---------- breadcrumb ----------
     var primaryCat = (product.categories || [])[0];
