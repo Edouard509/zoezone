@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   var pendingDiscountPercent = 0;
+  var appliedPromo = null; // { code, discountType, discountValue } — overrides the referral discount when set
   var discountReady = fetch('/api/auth/customer/me', { credentials: 'same-origin' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (me) {
@@ -28,6 +29,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
   ZZShop.ready.then(function () {
     discountReady.then(function () { renderSummary(); });
+  });
+
+  document.getElementById('applyPromoBtn').addEventListener('click', function () {
+    var code = document.getElementById('promoCodeField').value.trim();
+    var msgEl = document.getElementById('promoMessage');
+    if (!code) { msgEl.textContent = ''; return; }
+    msgEl.style.color = '#888';
+    msgEl.textContent = 'Checking…';
+    fetch('/api/promo/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code }),
+    })
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.data.valid) {
+          appliedPromo = null;
+          msgEl.style.color = '#b3261e';
+          msgEl.textContent = res.data.error || 'Invalid promo code.';
+          renderSummary();
+          return;
+        }
+        appliedPromo = res.data;
+        msgEl.style.color = '#1f8a45';
+        msgEl.textContent = 'Code "' + res.data.code + '" applied!';
+        renderSummary();
+      })
+      .catch(function () {
+        appliedPromo = null;
+        msgEl.style.color = '#b3261e';
+        msgEl.textContent = "Couldn't reach the server — try again.";
+        renderSummary();
+      });
   });
 
   // ---------- order summary ----------
@@ -52,13 +86,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var subtotal = ZZShop.cartSubtotal();
     var shipping = subtotal >= 75 ? 0 : 6.95;
-    var discountAmount = Math.round(subtotal * (pendingDiscountPercent / 100) * 100) / 100;
+
+    var discountAmount = 0;
+    var discountLabel = 'Discount';
+    var discountRow = document.getElementById('summaryDiscountRow');
+
+    if (appliedPromo) {
+      discountAmount = appliedPromo.discountType === 'percent'
+        ? Math.round(subtotal * (appliedPromo.discountValue / 100) * 100) / 100
+        : Math.min(appliedPromo.discountValue, subtotal);
+      discountLabel = 'Promo (' + appliedPromo.code + ')';
+    } else if (pendingDiscountPercent > 0) {
+      discountAmount = Math.round(subtotal * (pendingDiscountPercent / 100) * 100) / 100;
+      discountLabel = 'Referral Discount (' + pendingDiscountPercent + '%)';
+    }
     var discountedSubtotal = subtotal - discountAmount;
 
     document.getElementById('summarySubtotal').textContent = '$' + subtotal.toFixed(2);
-    var discountRow = document.getElementById('summaryDiscountRow');
-    if (pendingDiscountPercent > 0) {
+    if (discountAmount > 0) {
       discountRow.style.display = '';
+      document.getElementById('summaryDiscountLabel').textContent = discountLabel;
       document.getElementById('summaryDiscount').textContent = '-$' + discountAmount.toFixed(2);
     } else {
       discountRow.style.display = 'none';
@@ -215,7 +262,8 @@ document.addEventListener('DOMContentLoaded', function () {
       items: cartSnapshot,
       subtotal: totals.subtotal,
       shipping: totals.shipping,
-      total: totals.total
+      total: totals.total,
+      promoCode: appliedPromo ? appliedPromo.code : undefined
     };
 
     var placeBtn = document.getElementById('placeOrderBtn');

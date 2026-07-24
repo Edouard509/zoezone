@@ -40,12 +40,13 @@ async function createProduct(req) {
   await database.sql`
     INSERT INTO products
       (id, name, collection, categories, tags, price, was_price, colors, sizes, swatch_colors,
-       badge, is_new, media_style, art, description, details, active, sort_order)
+       badge, is_new, media_style, art, description, details, active, sort_order, stock_quantity)
     VALUES
       (${id}, ${body.name}, ${body.collection || 'Signature'}, ${body.categories || []}, ${body.tags || []},
        ${body.price}, ${body.was || null}, ${colors}, ${body.sizes || []}, ${swatchColorsFor(colors)},
        ${body.badge || null}, ${!!body.isNew}, ${body.mediaStyle || null}, ${buildArt(body)},
-       ${body.description || ''}, ${body.details || []}, ${body.active !== false}, ${body.sortOrder || 0})
+       ${body.description || ''}, ${body.details || []}, ${body.active !== false}, ${body.sortOrder || 0},
+       ${body.stockQuantity !== undefined ? body.stockQuantity : 50})
   `;
 
   const rows = await database.sql`SELECT * FROM products WHERE id = ${id} LIMIT 1`;
@@ -90,6 +91,7 @@ async function updateProduct(id, req) {
       details = ${body.details ?? current.details},
       active = ${body.active !== undefined ? !!body.active : current.active},
       sort_order = ${body.sortOrder ?? current.sort_order},
+      stock_quantity = ${body.stockQuantity !== undefined ? body.stockQuantity : current.stock_quantity},
       updated_at = now()
     WHERE id = ${id}
   `;

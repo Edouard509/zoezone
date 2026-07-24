@@ -118,11 +118,32 @@
       });
     });
 
+    // ---------- stock status ----------
+    var LOW_STOCK_THRESHOLD = 5;
+    var stockQuantity = product.stockQuantity != null ? product.stockQuantity : 999;
+    var stockStatusEl = document.getElementById('pdpStockStatus');
+    var addBtn = document.getElementById('pdpAddBtn');
+    if (stockQuantity <= 0) {
+      stockStatusEl.textContent = 'Out of Stock';
+      stockStatusEl.style.color = '#b3261e';
+      stockStatusEl.style.display = 'block';
+      addBtn.disabled = true;
+      addBtn.textContent = 'Out of Stock';
+    } else if (stockQuantity <= LOW_STOCK_THRESHOLD) {
+      stockStatusEl.textContent = 'Only ' + stockQuantity + ' left in stock!';
+      stockStatusEl.style.color = '#b3261e';
+      stockStatusEl.style.display = 'block';
+    }
+
     // ---------- quantity ----------
     var qty = 1;
     var qtyVal = document.getElementById('pdpQtyVal');
     document.getElementById('pdpQtyDec').addEventListener('click', function () { if (qty > 1) { qty--; qtyVal.textContent = qty; } });
-    document.getElementById('pdpQtyInc').addEventListener('click', function () { qty++; qtyVal.textContent = qty; });
+    document.getElementById('pdpQtyInc').addEventListener('click', function () {
+      if (qty >= stockQuantity) return;
+      qty++;
+      qtyVal.textContent = qty;
+    });
 
     // ---------- wishlist ----------
     var wishBtn = document.getElementById('pdpWishBtn');
@@ -183,6 +204,15 @@
       }).join('');
 
       document.getElementById('reviewCards').innerHTML = reviews.map(function (r) {
+        var mediaHTML = '';
+        if (r.mediaUrl) {
+          mediaHTML = r.mediaType === 'video'
+            ? '<video src="' + r.mediaUrl + '" controls style="max-width:220px;border-radius:6px;margin-top:10px;display:block;"></video>'
+            : '<img src="' + r.mediaUrl + '" style="max-width:220px;border-radius:6px;margin-top:10px;display:block;">';
+        }
+        var replyHTML = r.adminReply
+          ? '<div style="margin-top:12px;padding:12px 14px;background:var(--cream);border-radius:4px;font-size:13px;"><strong>Response from ZOEZONE:</strong> ' + r.adminReply + '</div>'
+          : '';
         return (
           '<div class="review-card">' +
             '<div class="review-head">' +
@@ -195,15 +225,54 @@
             starsHTML(r.rating) +
             '<div class="review-title">' + r.title + '</div>' +
             '<div class="review-body">' + r.body + '</div>' +
+            mediaHTML +
+            replyHTML +
           '</div>'
         );
       }).join('');
     }
     renderReviews();
 
-    // ---------- write a review ----------
+    // ---------- write a review (verified purchasers only) ----------
     var selectedRating = 0;
+    var uploadedMediaUrl = null;
+    var uploadedMediaType = null;
     var starPicks = document.querySelectorAll('.review-star-pick');
+    var reviewForm = document.getElementById('reviewForm');
+    var gateMessage = document.getElementById('reviewGateMessage');
+
+    function showGate(message) {
+      gateMessage.innerHTML = message;
+      gateMessage.style.display = 'block';
+      reviewForm.style.display = 'none';
+    }
+
+    fetch('/api/auth/customer/me', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (me) {
+        if (!me) {
+          showGate('<a href="account.html" style="text-decoration:underline;">Sign in</a> to leave a review.');
+          return;
+        }
+        var alreadyReviewed = reviews.some(function (r) { return r.customerId === me.id; });
+        if (alreadyReviewed) {
+          showGate("You've already reviewed this product. Thanks for the feedback!");
+          return;
+        }
+        var purchased = (me.orders || []).some(function (o) {
+          return o.status !== 'cancelled' && o.items.some(function (it) { return it.id === product.id; });
+        });
+        if (!purchased) {
+          showGate("You can review this product after you've purchased it.");
+          return;
+        }
+        gateMessage.style.display = 'none';
+        reviewForm.style.display = 'block';
+      })
+      .catch(function () {
+        showGate('<a href="account.html" style="text-decoration:underline;">Sign in</a> to leave a review.');
+      });
+
     starPicks.forEach(function (star) {
       star.addEventListener('click', function () {
         selectedRating = parseInt(star.dataset.value, 10);
@@ -213,9 +282,31 @@
       });
     });
 
-    document.getElementById('reviewForm').addEventListener('submit', function (e) {
+    document.getElementById('reviewMediaField').addEventListener('change', function () {
+      var file = this.files[0];
+      if (!file) return;
+      var hint = document.getElementById('reviewMediaHint');
+      hint.textContent = 'Uploading…';
+      var formData = new FormData();
+      formData.append('file', file);
+      fetch('/api/reviews/upload', { method: 'POST', body: formData, credentials: 'same-origin' })
+        .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (res) {
+          if (!res.ok) {
+            hint.textContent = res.data.error || 'Upload failed — please try again.';
+            return;
+          }
+          uploadedMediaUrl = res.data.url;
+          uploadedMediaType = res.data.mediaType;
+          hint.textContent = 'Attached!';
+        })
+        .catch(function () {
+          hint.textContent = 'Upload failed — check your connection and try again.';
+        });
+    });
+
+    reviewForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = document.getElementById('reviewNameField').value.trim();
       var title = document.getElementById('reviewTitleField').value.trim();
       var body = document.getElementById('reviewBodyField').value.trim();
       var errorEl = document.getElementById('reviewError');
@@ -223,7 +314,6 @@
 
       var errs = [];
       if (!selectedRating) errs.push('a star rating');
-      if (!name) errs.push('your name');
       if (!body) errs.push('a review');
       if (errs.length) {
         errorEl.textContent = 'Please add: ' + errs.join(', ') + '.';
@@ -237,7 +327,11 @@
       fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product.id, name: name, rating: selectedRating, title: title, body: body }),
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          productId: product.id, rating: selectedRating, title: title, body: body,
+          mediaUrl: uploadedMediaUrl, mediaType: uploadedMediaType
+        }),
       })
         .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
         .then(function (res) {
@@ -250,9 +344,13 @@
           }
           reviews.unshift(res.data);
           renderReviews();
-          document.getElementById('reviewForm').reset();
+          reviewForm.reset();
           selectedRating = 0;
+          uploadedMediaUrl = null;
+          uploadedMediaType = null;
+          document.getElementById('reviewMediaHint').textContent = '';
           starPicks.forEach(function (s) { s.style.color = '#ccc'; });
+          showGate("You've already reviewed this product. Thanks for the feedback!");
           ZZShop.showToast('Thanks for your review!');
         })
         .catch(function () {

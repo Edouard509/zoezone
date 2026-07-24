@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Promo Codes — ZOEZONE Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <div class="admin-sidebar">
+      <div class="brand"><img src="../assets/logo-black.png" alt="ZOEZONE"></div>
+      <nav>
+        <a href="index.html" data-page="index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="products.html" data-page="products.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Products
+        </a>
+        <a href="orders.html" data-page="orders.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Orders
+        </a>
+        <a href="reviews.html" data-page="reviews.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+          Reviews
+        </a>
+        <a href="promo.html" data-page="promo.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2.5 12.5V2.5h10l8.09 8.09a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>
+          Promo Codes
+        </a>
+        <a href="settings.html" data-page="settings.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+      <div class="admin-who" id="adminWho">&nbsp;</div>
+      <a href="#" class="signout-link" id="adminSignOut" style="padding:11px 12px;font-size:13px;font-weight:600;">Sign Out</a>
+    </div>
+
+    <div class="admin-main">
+      <div class="admin-page-head">
+        <div>
+          <h1>Promo Codes</h1>
+          <div class="sub">Create and manage discount codes for checkout.</div>
+        </div>
+        <button class="admin-btn" id="addPromoBtn">+ Add Promo Code</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Code</th><th>Discount</th><th>Uses</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+          <tbody id="promoBody"><tr class="admin-empty-row"><td colspan="6">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- ADD/EDIT PANEL ---------- -->
+  <div class="admin-panel-overlay" id="promoOverlay">
+    <div class="admin-panel" style="max-width:480px;">
+      <div class="admin-panel-head">
+        <h2 id="promoPanelTitle">Add Promo Code</h2>
+        <button class="admin-panel-close" id="promoPanelCloseBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+        </button>
+      </div>
+
+      <form id="promoForm" novalidate>
+        <div class="admin-field">
+          <label for="pcCode">Code</label>
+          <input type="text" id="pcCode" placeholder="SUMMER20" style="text-transform:uppercase;">
+        </div>
+        <div class="admin-field-row">
+          <div class="admin-field">
+            <label for="pcType">Discount Type</label>
+            <select id="pcType">
+              <option value="percent">Percent Off</option>
+              <option value="fixed">Fixed Amount Off</option>
+            </select>
+          </div>
+          <div class="admin-field">
+            <label for="pcValue">Discount Value</label>
+            <input type="number" id="pcValue" min="0" step="0.01" placeholder="e.g. 20">
+          </div>
+        </div>
+        <div class="admin-field-row">
+          <div class="admin-field">
+            <label for="pcMaxUses">Max Uses (blank = unlimited)</label>
+            <input type="number" id="pcMaxUses" min="1" step="1">
+          </div>
+          <div class="admin-field">
+            <label for="pcExpires">Expires (blank = never)</label>
+            <input type="date" id="pcExpires">
+          </div>
+        </div>
+        <div class="admin-field">
+          <label><input type="checkbox" id="pcActive" checked style="width:auto;margin-right:8px;">Active</label>
+        </div>
+        <div class="admin-error" id="promoFormError"></div>
+        <div class="admin-panel-footer">
+          <button type="button" class="admin-btn outline" id="promoCancelBtn">Cancel</button>
+          <button type="submit" class="admin-btn" id="promoSaveBtn">Save Code</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/admin-common.js"></script>
+  <script>
+    var allPromos = [];
+    var editingCode = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      ZZAdmin.init().then(function (admin) {
+        if (!admin) return;
+        loadPromos();
+      });
+
+      document.getElementById('addPromoBtn').addEventListener('click', openAddPanel);
+      document.getElementById('promoPanelCloseBtn').addEventListener('click', closePanel);
+      document.getElementById('promoCancelBtn').addEventListener('click', closePanel);
+      document.getElementById('promoOverlay').addEventListener('click', function (e) {
+        if (e.target === e.currentTarget) closePanel();
+      });
+      document.getElementById('promoForm').addEventListener('submit', handleSubmit);
+    });
+
+    function loadPromos() {
+      ZZAdmin.api('/api/admin/promo').then(function (res) {
+        if (!res.ok) {
+          document.getElementById('promoBody').innerHTML = '<tr class="admin-empty-row"><td colspan="6">Could not load promo codes.</td></tr>';
+          return;
+        }
+        allPromos = res.data;
+        renderTable();
+      });
+    }
+
+    function renderTable() {
+      var body = document.getElementById('promoBody');
+      if (!allPromos.length) {
+        body.innerHTML = '<tr class="admin-empty-row"><td colspan="6">No promo codes yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = allPromos.map(function (p) {
+        var discount = p.discountType === 'percent' ? p.discountValue + '% off' : '$' + p.discountValue.toFixed(2) + ' off';
+        var uses = p.usesCount + (p.maxUses ? ' / ' + p.maxUses : ' (unlimited)');
+        var expires = p.expiresAt ? new Date(p.expiresAt).toLocaleDateString() : 'Never';
+        var expired = p.expiresAt && new Date(p.expiresAt) < new Date();
+        var isActive = p.active && !expired && (p.maxUses === null || p.usesCount < p.maxUses);
+        return (
+          '<tr>' +
+            '<td style="font-weight:700;">' + ZZAdmin.escapeHTML(p.code) + '</td>' +
+            '<td>' + discount + '</td>' +
+            '<td>' + uses + '</td>' +
+            '<td>' + expires + '</td>' +
+            '<td><span class="admin-badge ' + (isActive ? 'active' : 'inactive') + '">' + (isActive ? 'Active' : 'Inactive') + '</span></td>' +
+            '<td><div class="admin-row-actions">' +
+              '<button type="button" data-edit="' + p.code + '">Edit</button>' +
+              '<button type="button" class="danger" data-delete="' + p.code + '">Delete</button>' +
+            '</div></td>' +
+          '</tr>'
+        );
+      }).join('');
+
+      body.querySelectorAll('[data-edit]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openEditPanel(btn.dataset.edit); });
+      });
+      body.querySelectorAll('[data-delete]').forEach(function (btn) {
+        btn.addEventListener('click', function () { handleDelete(btn.dataset.delete); });
+      });
+    }
+
+    function resetForm() {
+      document.getElementById('promoForm').reset();
+      document.getElementById('pcActive').checked = true;
+      document.getElementById('promoFormError').classList.remove('show');
+    }
+
+    function openAddPanel() {
+      resetForm();
+      editingCode = null;
+      document.getElementById('pcCode').disabled = false;
+      document.getElementById('promoPanelTitle').textContent = 'Add Promo Code';
+      document.getElementById('promoOverlay').classList.add('open');
+    }
+
+    function openEditPanel(code) {
+      var p = allPromos.filter(function (x) { return x.code === code; })[0];
+      if (!p) return;
+      resetForm();
+      editingCode = code;
+      document.getElementById('promoPanelTitle').textContent = 'Edit Promo Code';
+      document.getElementById('pcCode').value = p.code;
+      document.getElementById('pcCode').disabled = true;
+      document.getElementById('pcType').value = p.discountType;
+      document.getElementById('pcValue').value = p.discountValue;
+      document.getElementById('pcMaxUses').value = p.maxUses || '';
+      document.getElementById('pcExpires').value = p.expiresAt ? p.expiresAt.slice(0, 10) : '';
+      document.getElementById('pcActive').checked = p.active;
+      document.getElementById('promoOverlay').classList.add('open');
+    }
+
+    function closePanel() {
+      document.getElementById('promoOverlay').classList.remove('open');
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('promoFormError');
+      var code = document.getElementById('pcCode').value.trim().toUpperCase();
+      var discountValue = parseFloat(document.getElementById('pcValue').value);
+
+      if (!code || isNaN(discountValue) || discountValue <= 0) {
+        errorEl.textContent = 'A code and a positive discount value are required.';
+        errorEl.classList.add('show');
+        return;
+      }
+      errorEl.classList.remove('show');
+
+      var body = {
+        code: code,
+        discountType: document.getElementById('pcType').value,
+        discountValue: discountValue,
+        maxUses: document.getElementById('pcMaxUses').value ? parseInt(document.getElementById('pcMaxUses').value, 10) : null,
+        expiresAt: document.getElementById('pcExpires').value || null,
+        active: document.getElementById('pcActive').checked,
+      };
+
+      var saveBtn = document.getElementById('promoSaveBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
+      var request = editingCode
+        ? ZZAdmin.api('/api/admin/promo/' + encodeURIComponent(editingCode), { method: 'PUT', body: JSON.stringify(body) })
+        : ZZAdmin.api('/api/admin/promo', { method: 'POST', body: JSON.stringify(body) });
+
+      request.then(function (res) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Code';
+        if (!res.ok) {
+          errorEl.textContent = res.data.error || 'Something went wrong saving this code.';
+          errorEl.classList.add('show');
+          return;
+        }
+        closePanel();
+        ZZAdmin.showToast(editingCode ? 'Promo code updated' : 'Promo code added');
+        loadPromos();
+      }).catch(function () {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Code';
+        errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
+        errorEl.classList.add('show');
+      });
+    }
+
+    function handleDelete(code) {
+      if (!window.confirm('Delete promo code "' + code + '"? This cannot be undone.')) return;
+      ZZAdmin.api('/api/admin/promo/' + encodeURIComponent(code), { method: 'DELETE' }).then(function (res) {
+        if (!res.ok) {
+          ZZAdmin.showToast(res.data.error || 'Could not delete this code.');
+          return;
+        }
+        ZZAdmin.showToast('Promo code deleted');
+        loadPromos();
+      });
+    }
+  </script>
+</body>
+</html>

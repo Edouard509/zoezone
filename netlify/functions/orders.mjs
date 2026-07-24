@@ -12,7 +12,7 @@ async function createOrder(req) {
   const body = await req.json().catch(() => null);
   if (!body) return json({ error: 'Invalid request body' }, { status: 400 });
 
-  const { firstName, lastName, email, whatsapp, address, notes, location, payment, items, subtotal, shipping } = body;
+  const { firstName, lastName, email, whatsapp, address, notes, location, payment, items, subtotal, shipping, promoCode } = body;
 
   const errors = [];
   if (!firstName) errors.push('first name');
@@ -28,25 +28,56 @@ async function createOrder(req) {
   }
 
   const database = db();
+
+  // ---------- stock check (best-effort; not a hard transaction lock) ----------
+  for (const item of items) {
+    if (!item.id) continue;
+    const rows = await database.sql`SELECT name, stock_quantity FROM products WHERE id = ${item.id} LIMIT 1`;
+    if (!rows.length) continue;
+    if (rows[0].stock_quantity < item.qty) {
+      return json({ error: `Sorry, "${rows[0].name}" only has ${rows[0].stock_quantity} left in stock.` }, { status: 409 });
+    }
+  }
+
   const customer = getCustomerFromRequest(req);
   const orderId = generateOrderId();
 
-  // Referral discount is decided server-side from the customer's account state — never trust a client-submitted discount.
+  // ---------- discount: a promo code (if given) takes precedence over the referral discount ----------
   let discountPercent = 0;
-  if (customer) {
+  let promoDiscountAmount = 0;
+  let appliedPromoCode = null;
+
+  if (promoCode) {
+    const promoRows = await database.sql`SELECT * FROM promo_codes WHERE code = ${promoCode.trim().toUpperCase()} LIMIT 1`;
+    if (!promoRows.length) return json({ error: "That promo code doesn't exist." }, { status: 400 });
+    const promo = promoRows[0];
+    if (!promo.active) return json({ error: 'That promo code is no longer active.' }, { status: 400 });
+    if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
+      return json({ error: 'That promo code has expired.' }, { status: 400 });
+    }
+    if (promo.max_uses !== null && promo.uses_count >= promo.max_uses) {
+      return json({ error: 'That promo code has reached its usage limit.' }, { status: 400 });
+    }
+    promoDiscountAmount = promo.discount_type === 'percent'
+      ? Math.round(subtotal * (Number(promo.discount_value) / 100) * 100) / 100
+      : Math.min(Number(promo.discount_value), subtotal);
+    appliedPromoCode = promo.code;
+  } else if (customer) {
     const rows = await database.sql`SELECT pending_discount_percent FROM customers WHERE id = ${customer.sub} LIMIT 1`;
     if (rows.length) discountPercent = rows[0].pending_discount_percent || 0;
   }
-  const discountedSubtotal = Math.round(subtotal * (1 - discountPercent / 100) * 100) / 100;
+
+  const discountedSubtotal = Math.round((subtotal * (1 - discountPercent / 100) - promoDiscountAmount) * 100) / 100;
   const finalTotal = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
   await database.sql`
     INSERT INTO orders
-      (id, customer_id, first_name, last_name, email, whatsapp, address, notes, lat, lng, payment_method, subtotal, shipping, discount_percent, total, status)
+      (id, customer_id, first_name, last_name, email, whatsapp, address, notes, lat, lng, payment_method,
+       subtotal, shipping, discount_percent, promo_code, promo_discount_amount, total, status)
     VALUES
       (${orderId}, ${customer ? customer.sub : null}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
        ${location.lat}, ${location.lng}, ${payment.method},
-       ${subtotal}, ${shipping}, ${discountPercent}, ${finalTotal}, 'pending')
+       ${subtotal}, ${shipping}, ${discountPercent}, ${appliedPromoCode}, ${promoDiscountAmount}, ${finalTotal}, 'pending')
   `;
 
   for (const item of items) {
@@ -54,9 +85,14 @@ async function createOrder(req) {
       INSERT INTO order_items (order_id, product_id, name, price, qty, size, color)
       VALUES (${orderId}, ${item.id || null}, ${item.name}, ${item.price}, ${item.qty}, ${item.size || null}, ${item.color || null})
     `;
+    if (item.id) {
+      await database.sql`UPDATE products SET stock_quantity = GREATEST(stock_quantity - ${item.qty}, 0) WHERE id = ${item.id}`;
+    }
   }
 
-  if (customer && discountPercent > 0) {
+  if (appliedPromoCode) {
+    await database.sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ${appliedPromoCode}`;
+  } else if (customer && discountPercent > 0) {
     await database.sql`UPDATE customers SET pending_discount_percent = 0 WHERE id = ${customer.sub}`;
   }
 
@@ -75,7 +111,7 @@ async function createOrder(req) {
     fromEmail: 'orders@zoezone.co',
   });
 
-  return json({ id: orderId, discountPercent, subtotal: discountedSubtotal, total: finalTotal }, { status: 201 });
+  return json({ id: orderId, discountPercent, promoDiscountAmount, subtotal: discountedSubtotal, total: finalTotal }, { status: 201 });
 }
 
 async function getOrder(id, req) {

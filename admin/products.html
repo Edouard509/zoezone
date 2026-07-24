@@ -29,6 +29,14 @@
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           Orders
         </a>
+        <a href="reviews.html" data-page="reviews.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+          Reviews
+        </a>
+        <a href="promo.html" data-page="promo.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2.5 12.5V2.5h10l8.09 8.09a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>
+          Promo Codes
+        </a>
         <a href="settings.html" data-page="settings.html">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Settings
@@ -66,8 +74,8 @@
           <span id="productCount" style="font-size:12px;color:#888;"></span>
         </div>
         <table class="admin-table">
-          <thead><tr><th></th><th>Name</th><th>Collection</th><th>Categories</th><th>Price</th><th>Status</th><th></th></tr></thead>
-          <tbody id="productsBody"><tr class="admin-empty-row"><td colspan="7">Loading…</td></tr></tbody>
+          <thead><tr><th></th><th>Name</th><th>Collection</th><th>Categories</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+          <tbody id="productsBody"><tr class="admin-empty-row"><td colspan="8">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -116,6 +124,14 @@
             <label for="pWas">Sale — Was Price ($)</label>
             <input type="number" id="pWas" min="0" step="0.01" placeholder="Leave blank if not on sale">
           </div>
+        </div>
+
+        <div class="admin-field-row">
+          <div class="admin-field">
+            <label for="pStock">Stock Quantity</label>
+            <input type="number" id="pStock" min="0" step="1" placeholder="50">
+          </div>
+          <div class="admin-field"></div>
         </div>
 
         <div class="admin-field">
@@ -210,7 +226,7 @@
     function loadProducts() {
       ZZAdmin.api('/api/admin/products').then(function (res) {
         if (!res.ok) {
-          document.getElementById('productsBody').innerHTML = '<tr class="admin-empty-row"><td colspan="7">Could not load products.</td></tr>';
+          document.getElementById('productsBody').innerHTML = '<tr class="admin-empty-row"><td colspan="8">Could not load products.</td></tr>';
           return;
         }
         allProducts = res.data;
@@ -235,7 +251,7 @@
 
       var body = document.getElementById('productsBody');
       if (!filtered.length) {
-        body.innerHTML = '<tr class="admin-empty-row"><td colspan="7">No products match.</td></tr>';
+        body.innerHTML = '<tr class="admin-empty-row"><td colspan="8">No products match.</td></tr>';
         return;
       }
 
@@ -250,6 +266,11 @@
             '<td>' + ZZAdmin.escapeHTML(p.collection) + '</td>' +
             '<td>' + (p.categories.map(ZZAdmin.escapeHTML).join(', ') || '—') + '</td>' +
             '<td>' + priceHTML + '</td>' +
+            '<td>' + (p.stockQuantity <= 0
+              ? '<span style="color:#b3261e;font-weight:700;">Out of stock</span>'
+              : p.stockQuantity <= 5
+                ? '<span style="color:#b3261e;font-weight:700;">' + p.stockQuantity + ' left</span>'
+                : p.stockQuantity) + '</td>' +
             '<td><span class="admin-badge ' + (p.active ? 'active' : 'inactive') + '">' + (p.active ? 'Active' : 'Inactive') + '</span></td>' +
             '<td><div class="admin-row-actions">' +
               '<button type="button" data-edit="' + p.id + '">Edit</button>' +
@@ -298,6 +319,7 @@
       document.getElementById('pCollection').value = p.collection || '';
       document.getElementById('pPrice').value = p.price;
       document.getElementById('pWas').value = p.was || '';
+      document.getElementById('pStock').value = p.stockQuantity;
       document.getElementById('pColors').value = (p.colors || []).join(', ');
       document.getElementById('pSizes').value = (p.sizes || []).join(', ');
       document.getElementById('pBadge').value = p.badge || '';
@@ -355,6 +377,7 @@
       errorEl.classList.remove('show');
 
       var was = document.getElementById('pWas').value;
+      var stock = document.getElementById('pStock').value;
       var categories = Array.prototype.map.call(document.querySelectorAll('.pCategory:checked'), function (cb) { return cb.value; });
       var tags = Array.prototype.map.call(document.querySelectorAll('.pTag:checked'), function (cb) { return cb.value; });
       var colors = document.getElementById('pColors').value.split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
@@ -366,6 +389,7 @@
         collection: document.getElementById('pCollection').value.trim() || 'Signature',
         price: price,
         was: was ? parseFloat(was) : null,
+        stockQuantity: stock !== '' ? parseInt(stock, 10) : undefined,
         categories: categories,
         tags: tags,
         colors: colors,

@@ -57,6 +57,7 @@ export function serializeProduct(row) {
     description: row.description,
     details: row.details || [],
     active: row.active,
+    stockQuantity: row.stock_quantity,
   };
 }
 
@@ -68,6 +69,11 @@ export function serializeReview(row) {
     title: row.title,
     body: row.body,
     createdAt: row.created_at,
+    customerId: row.customer_id,
+    mediaUrl: row.media_url || null,
+    mediaType: row.media_type || null,
+    adminReply: row.admin_reply || null,
+    adminReplyAt: row.admin_reply_at || null,
   };
 }
 
@@ -88,6 +94,8 @@ export function serializeOrder(row, items) {
     subtotal: Number(row.subtotal),
     shipping: Number(row.shipping),
     discountPercent: row.discount_percent || 0,
+    promoCode: row.promo_code || null,
+    promoDiscountAmount: Number(row.promo_discount_amount || 0),
     total: Number(row.total),
     status: row.status,
     createdAt: row.created_at,

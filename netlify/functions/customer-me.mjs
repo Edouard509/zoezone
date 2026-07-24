@@ -45,6 +45,7 @@ export default async (req) => {
     referralCode: c.referral_code,
     pendingDiscountPercent: c.pending_discount_percent,
     memberSince: c.created_at,
+    avatarUrl: c.avatar_url,
     orders,
   });
 };

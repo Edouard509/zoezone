@@ -270,6 +270,23 @@
     );
   }
 
+  function setHeaderAvatar(avatarUrl) {
+    document.querySelectorAll('a.icon-btn[aria-label="Account"]').forEach(function (el) {
+      if (avatarUrl) {
+        el.innerHTML = '<img src="' + avatarUrl + '" style="width:21px;height:21px;border-radius:50%;object-fit:cover;display:block;">';
+      } else {
+        el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      }
+    });
+  }
+
+  function loadHeaderAvatar() {
+    fetch('/api/auth/customer/me', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (me) { if (me && me.avatarUrl) setHeaderAvatar(me.avatarUrl); })
+      .catch(function () {});
+  }
+
   function initNewsletter() {
     var form = document.getElementById('newsletterForm');
     if (!form) return;
@@ -306,7 +323,8 @@
     findProduct: findProduct, renderBadges: renderBadges,
     showToast: showToast, openCartDrawer: openCartDrawer,
     renderCartDrawer: renderCartDrawer, ensureCartDrawer: ensureCartDrawer,
-    markWishedIcons: markWishedIcons, productCardHTML: productCardHTML
+    markWishedIcons: markWishedIcons, productCardHTML: productCardHTML,
+    setHeaderAvatar: setHeaderAvatar
   };
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -314,5 +332,6 @@
     markWishedIcons();
     initDelegatedEvents();
     initNewsletter();
+    loadHeaderAvatar();
   });
 })();

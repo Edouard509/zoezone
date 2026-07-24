@@ -119,6 +119,16 @@
       <div class="dash-panel active" id="panelDetails">
         <h2>Account Details</h2>
         <p class="sub">Manage your name and email address.</p>
+
+        <div class="dash-field" style="display:flex;align-items:center;gap:16px;">
+          <div id="avatarPreview" style="width:64px;height:64px;border-radius:50%;background:var(--cream);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:22px;color:#999;">?</div>
+          <div>
+            <input type="file" id="avatarFile" accept="image/*" style="display:none;">
+            <button type="button" class="dash-save" id="avatarUploadBtn" style="margin-top:0;padding:9px 16px;">Change Photo</button>
+            <div id="avatarHint" style="font-size:11.5px;color:#888;margin-top:6px;"></div>
+          </div>
+        </div>
+
         <div class="dash-field">
           <label for="dName" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:6px;display:block;">Full Name</label>
           <input type="text" id="dName" style="width:100%;border:1px solid var(--line);padding:12px 14px;font-size:13.5px;box-sizing:border-box;">
@@ -275,6 +285,18 @@
           document.getElementById('memberSinceText').textContent = 'Member since ' + since;
         }
         document.getElementById('discountStatusBox').style.display = me.pendingDiscountPercent > 0 ? 'block' : 'none';
+
+        renderAvatar(me.avatarUrl, me.firstName);
+      }
+
+      function renderAvatar(avatarUrl, firstName) {
+        var preview = document.getElementById('avatarPreview');
+        if (avatarUrl) {
+          preview.innerHTML = '<img src="' + avatarUrl + '" style="width:100%;height:100%;object-fit:cover;">';
+        } else {
+          preview.textContent = (firstName || '?').charAt(0).toUpperCase();
+        }
+        if (window.ZZShop && ZZShop.setHeaderAvatar) ZZShop.setHeaderAvatar(avatarUrl);
       }
       function showAuth() {
         authWrap.style.display = 'block';
@@ -416,6 +438,33 @@
           .catch(function () {
             errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
             errorEl.style.display = 'block';
+          });
+      });
+
+      document.getElementById('avatarUploadBtn').addEventListener('click', function () {
+        document.getElementById('avatarFile').click();
+      });
+
+      document.getElementById('avatarFile').addEventListener('change', function () {
+        var file = this.files[0];
+        if (!file) return;
+        var hint = document.getElementById('avatarHint');
+        hint.textContent = 'Uploading…';
+        var formData = new FormData();
+        formData.append('file', file);
+        fetch('/api/auth/customer/avatar', { method: 'POST', body: formData, credentials: 'same-origin' })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              hint.textContent = res.data.error || 'Upload failed — please try again.';
+              return;
+            }
+            hint.textContent = '';
+            renderAvatar(res.data.url, document.getElementById('dName').value);
+            ZZShop.showToast('Profile picture updated');
+          })
+          .catch(function () {
+            hint.textContent = 'Upload failed — check your connection and try again.';
           });
       });
 

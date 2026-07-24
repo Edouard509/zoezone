@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviews — ZOEZONE Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <div class="admin-sidebar">
+      <div class="brand"><img src="../assets/logo-black.png" alt="ZOEZONE"></div>
+      <nav>
+        <a href="index.html" data-page="index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="products.html" data-page="products.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Products
+        </a>
+        <a href="orders.html" data-page="orders.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Orders
+        </a>
+        <a href="reviews.html" data-page="reviews.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+          Reviews
+        </a>
+        <a href="promo.html" data-page="promo.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2.5 12.5V2.5h10l8.09 8.09a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg>
+          Promo Codes
+        </a>
+        <a href="settings.html" data-page="settings.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+      <div class="admin-who" id="adminWho">&nbsp;</div>
+      <a href="#" class="signout-link" id="adminSignOut" style="padding:11px 12px;font-size:13px;font-weight:600;">Sign Out</a>
+    </div>
+
+    <div class="admin-main">
+      <div class="admin-page-head">
+        <div>
+          <h1>Reviews</h1>
+          <div class="sub">Moderate customer reviews and reply publicly.</div>
+        </div>
+      </div>
+
+      <div id="reviewsList"></div>
+    </div>
+  </div>
+
+  <!-- ---------- REPLY PANEL ---------- -->
+  <div class="admin-panel-overlay" id="replyOverlay">
+    <div class="admin-panel" style="max-width:480px;">
+      <div class="admin-panel-head">
+        <h2>Reply to Review</h2>
+        <button class="admin-panel-close" id="replyPanelCloseBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+        </button>
+      </div>
+      <form id="replyForm" novalidate>
+        <div class="admin-field">
+          <label for="replyText">Your Reply (shown publicly under the review)</label>
+          <textarea id="replyText" rows="4"></textarea>
+        </div>
+        <div class="admin-error" id="replyError"></div>
+        <div class="admin-panel-footer">
+          <button type="button" class="admin-btn outline" id="replyCancelBtn">Cancel</button>
+          <button type="submit" class="admin-btn" id="replySaveBtn">Post Reply</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/admin-common.js"></script>
+  <script>
+    var allReviews = [];
+    var currentReviewId = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      ZZAdmin.init().then(function (admin) {
+        if (!admin) return;
+        loadReviews();
+      });
+
+      document.getElementById('replyPanelCloseBtn').addEventListener('click', closeReplyPanel);
+      document.getElementById('replyCancelBtn').addEventListener('click', closeReplyPanel);
+      document.getElementById('replyOverlay').addEventListener('click', function (e) {
+        if (e.target === e.currentTarget) closeReplyPanel();
+      });
+      document.getElementById('replyForm').addEventListener('submit', handleReplySubmit);
+    });
+
+    function loadReviews() {
+      ZZAdmin.api('/api/admin/reviews').then(function (res) {
+        if (!res.ok) {
+          document.getElementById('reviewsList').innerHTML = '<div class="admin-table-wrap" style="padding:40px;text-align:center;color:#888;">Could not load reviews.</div>';
+          return;
+        }
+        allReviews = res.data;
+        renderList();
+      });
+    }
+
+    function starsText(rating) {
+      return '★★★★★'.slice(0, rating) + '<span style="color:#ddd;">' + '★★★★★'.slice(rating) + '</span>';
+    }
+
+    function renderList() {
+      var container = document.getElementById('reviewsList');
+      if (!allReviews.length) {
+        container.innerHTML = '<div class="admin-table-wrap" style="padding:40px;text-align:center;color:#888;">No reviews yet.</div>';
+        return;
+      }
+      container.innerHTML = allReviews.map(function (r) {
+        var date = new Date(r.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        var mediaHTML = '';
+        if (r.mediaUrl) {
+          mediaHTML = r.mediaType === 'video'
+            ? '<video src="' + r.mediaUrl + '" controls style="max-width:160px;border-radius:4px;margin-top:10px;"></video>'
+            : '<img src="' + r.mediaUrl + '" style="max-width:160px;border-radius:4px;margin-top:10px;">';
+        }
+        var replyHTML = r.adminReply
+          ? '<div style="margin-top:12px;padding:12px 14px;background:var(--cream);border-radius:4px;font-size:13px;"><strong>Your reply:</strong> ' + ZZAdmin.escapeHTML(r.adminReply) + '</div>'
+          : '';
+        return (
+          '<div class="admin-card" style="margin-bottom:14px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">' +
+              '<div>' +
+                '<div style="font-size:13px;color:#888;margin-bottom:4px;">' + ZZAdmin.escapeHTML(r.productName || r.productId) + '</div>' +
+                '<div style="font-weight:700;font-size:14px;">' + ZZAdmin.escapeHTML(r.name) + ' <span style="font-weight:400;color:#999;font-size:12px;">&middot; ' + date + '</span></div>' +
+                '<div style="margin:6px 0;">' + starsText(r.rating) + '</div>' +
+                '<div style="font-weight:600;font-size:13.5px;margin-bottom:4px;">' + ZZAdmin.escapeHTML(r.title || '') + '</div>' +
+                '<div style="font-size:13px;color:#444;line-height:1.5;">' + ZZAdmin.escapeHTML(r.body) + '</div>' +
+                mediaHTML +
+                replyHTML +
+              '</div>' +
+              '<div class="admin-row-actions" style="flex-shrink:0;">' +
+                '<button type="button" data-reply="' + r.id + '">' + (r.adminReply ? 'Edit Reply' : 'Reply') + '</button>' +
+                '<button type="button" class="danger" data-delete="' + r.id + '">Delete</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      container.querySelectorAll('[data-reply]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openReplyPanel(Number(btn.dataset.reply)); });
+      });
+      container.querySelectorAll('[data-delete]').forEach(function (btn) {
+        btn.addEventListener('click', function () { handleDelete(Number(btn.dataset.delete)); });
+      });
+    }
+
+    function openReplyPanel(id) {
+      var r = allReviews.filter(function (x) { return x.id === id; })[0];
+      if (!r) return;
+      currentReviewId = id;
+      document.getElementById('replyText').value = r.adminReply || '';
+      document.getElementById('replyError').classList.remove('show');
+      document.getElementById('replyOverlay').classList.add('open');
+    }
+
+    function closeReplyPanel() {
+      document.getElementById('replyOverlay').classList.remove('open');
+      currentReviewId = null;
+    }
+
+    function handleReplySubmit(e) {
+      e.preventDefault();
+      var reply = document.getElementById('replyText').value.trim();
+      var errorEl = document.getElementById('replyError');
+      if (!reply) {
+        errorEl.textContent = 'Please write a reply.';
+        errorEl.classList.add('show');
+        return;
+      }
+      var btn = document.getElementById('replySaveBtn');
+      btn.disabled = true;
+      btn.textContent = 'Posting…';
+      ZZAdmin.api('/api/admin/reviews/' + currentReviewId, { method: 'PUT', body: JSON.stringify({ reply: reply }) })
+        .then(function (res) {
+          btn.disabled = false;
+          btn.textContent = 'Post Reply';
+          if (!res.ok) {
+            errorEl.textContent = res.data.error || 'Something went wrong.';
+            errorEl.classList.add('show');
+            return;
+          }
+          closeReplyPanel();
+          ZZAdmin.showToast('Reply posted');
+          loadReviews();
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Post Reply';
+          errorEl.textContent = "Couldn't reach the server — try again.";
+          errorEl.classList.add('show');
+        });
+    }
+
+    function handleDelete(id) {
+      if (!window.confirm('Delete this review? This cannot be undone.')) return;
+      ZZAdmin.api('/api/admin/reviews/' + id, { method: 'DELETE' }).then(function (res) {
+        if (!res.ok) {
+          ZZAdmin.showToast(res.data.error || 'Could not delete this review.');
+          return;
+        }
+        ZZAdmin.showToast('Review deleted');
+        loadReviews();
+      });
+    }
+  </script>
+</body>
+</html>

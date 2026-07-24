@@ -1,8 +1,14 @@
 import { getStore } from '@netlify/blobs';
 
+const ALLOWED_STORES = ['product-images', 'avatars', 'review-media'];
+
 export default async (req, context) => {
   const { key } = context.params;
-  const store = getStore('product-images');
+  const url = new URL(req.url);
+  const storeName = url.searchParams.get('store') || 'product-images';
+  if (!ALLOWED_STORES.includes(storeName)) return new Response('Not found', { status: 404 });
+
+  const store = getStore(storeName);
 
   const blob = await store.get(key, { type: 'blob' });
   if (blob === null) return new Response('Not found', { status: 404 });

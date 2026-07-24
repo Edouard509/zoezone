@@ -98,6 +98,8 @@
             </div>
           </div>
 
+          <div class="pdp-stock-status" id="pdpStockStatus" style="display:none;font-size:12.5px;font-weight:700;margin-bottom:12px;"></div>
+
           <div class="pdp-error" id="pdpError"></div>
 
           <div class="pdp-actions">
@@ -148,7 +150,10 @@
 
         <div class="write-review-box" style="max-width:480px;margin-top:32px;padding-top:28px;border-top:1px solid var(--line);">
           <h3 style="font-size:16px;margin-bottom:16px;">Write a Review</h3>
-          <form id="reviewForm" novalidate>
+
+          <div class="dash-empty" id="reviewGateMessage" style="display:none;padding:20px 0;text-align:left;border-top:none;"></div>
+
+          <form id="reviewForm" novalidate style="display:none;">
             <div class="field">
               <label>Your Rating</label>
               <div id="reviewStarPicker" style="display:flex;gap:6px;margin-top:4px;">
@@ -160,16 +165,17 @@
               </div>
             </div>
             <div class="field">
-              <label for="reviewNameField">Your Name</label>
-              <input type="text" id="reviewNameField" placeholder="Jane D.">
-            </div>
-            <div class="field">
               <label for="reviewTitleField">Review Title</label>
               <input type="text" id="reviewTitleField" placeholder="Sum it up in a few words">
             </div>
             <div class="field">
               <label for="reviewBodyField">Your Review</label>
               <textarea id="reviewBodyField" placeholder="What did you think?"></textarea>
+            </div>
+            <div class="field">
+              <label for="reviewMediaField">Add a Photo or Video (optional)</label>
+              <input type="file" id="reviewMediaField" accept="image/*,video/*">
+              <div id="reviewMediaHint" style="font-size:11.5px;color:#888;margin-top:6px;"></div>
             </div>
             <div class="checkout-error" id="reviewError"></div>
             <button class="dash-save" type="submit" id="reviewSubmitBtn">Submit Review</button>
