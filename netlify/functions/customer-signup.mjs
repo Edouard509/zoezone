@@ -1,5 +1,6 @@
 import { db } from './utils/db.mjs';
 import { json, hashPassword, signToken, cookieHeader } from './utils/auth.mjs';
+import { sendEmail, welcomeEmailHTML } from './utils/email.mjs';
 
 export default async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
@@ -29,6 +30,12 @@ export default async (req) => {
     RETURNING id, email, first_name, last_name
   `;
   const customer = rows[0];
+
+  await sendEmail({
+    to: customer.email,
+    subject: 'Welcome to ZOEZONE',
+    html: welcomeEmailHTML({ firstName: customer.first_name }),
+  });
 
   const token = signToken({ type: 'customer', sub: customer.id, email: customer.email });
 
