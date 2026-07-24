@@ -87,6 +87,7 @@ export function serializeOrder(row, items) {
     payment: { method: row.payment_method },
     subtotal: Number(row.subtotal),
     shipping: Number(row.shipping),
+    discountPercent: row.discount_percent || 0,
     total: Number(row.total),
     status: row.status,
     createdAt: row.created_at,

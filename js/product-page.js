@@ -161,40 +161,107 @@
 
     // ---------- reviews ----------
     var reviews = product.reviews || [];
-    document.getElementById('reviewsAvgNum').textContent = product.rating.toFixed(1);
-    document.getElementById('reviewsAvgStars').innerHTML = starsHTML(product.rating);
-    document.getElementById('reviewsAvgCount').textContent = 'Based on ' + product.reviewCount + ' review' + (product.reviewCount === 1 ? '' : 's');
 
-    var counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach(function (r) { counts[r.rating] = (counts[r.rating] || 0) + 1; });
-    var total = reviews.length || 1;
-    document.getElementById('ratingBars').innerHTML = [5, 4, 3, 2, 1].map(function (n) {
-      var pct = Math.round((counts[n] / total) * 100);
-      return (
-        '<div class="rating-bar-row">' +
-          '<span>' + n + ' star</span>' +
-          '<div class="rating-bar-track"><div class="rating-bar-fill" style="width:' + pct + '%;"></div></div>' +
-          '<span>' + counts[n] + '</span>' +
-        '</div>'
-      );
-    }).join('');
+    function renderReviews() {
+      var avg = reviews.length ? reviews.reduce(function (s, r) { return s + r.rating; }, 0) / reviews.length : 0;
+      document.getElementById('reviewsAvgNum').textContent = avg.toFixed(1);
+      document.getElementById('reviewsAvgStars').innerHTML = starsHTML(avg);
+      document.getElementById('reviewsAvgCount').textContent = 'Based on ' + reviews.length + ' review' + (reviews.length === 1 ? '' : 's');
 
-    document.getElementById('reviewCards').innerHTML = reviews.map(function (r) {
-      return (
-        '<div class="review-card">' +
-          '<div class="review-head">' +
-            '<div class="review-avatar">' + r.name.charAt(0) + '</div>' +
-            '<div>' +
-              '<div class="review-name">' + r.name + '</div>' +
-              '<div class="review-date">' + formatDate(r.createdAt) + '</div>' +
+      var counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      reviews.forEach(function (r) { counts[r.rating] = (counts[r.rating] || 0) + 1; });
+      var total = reviews.length || 1;
+      document.getElementById('ratingBars').innerHTML = [5, 4, 3, 2, 1].map(function (n) {
+        var pct = Math.round((counts[n] / total) * 100);
+        return (
+          '<div class="rating-bar-row">' +
+            '<span>' + n + ' star</span>' +
+            '<div class="rating-bar-track"><div class="rating-bar-fill" style="width:' + pct + '%;"></div></div>' +
+            '<span>' + counts[n] + '</span>' +
+          '</div>'
+        );
+      }).join('');
+
+      document.getElementById('reviewCards').innerHTML = reviews.map(function (r) {
+        return (
+          '<div class="review-card">' +
+            '<div class="review-head">' +
+              '<div class="review-avatar">' + r.name.charAt(0) + '</div>' +
+              '<div>' +
+                '<div class="review-name">' + r.name + '</div>' +
+                '<div class="review-date">' + formatDate(r.createdAt) + '</div>' +
+              '</div>' +
             '</div>' +
-          '</div>' +
-          starsHTML(r.rating) +
-          '<div class="review-title">' + r.title + '</div>' +
-          '<div class="review-body">' + r.body + '</div>' +
-        '</div>'
-      );
-    }).join('');
+            starsHTML(r.rating) +
+            '<div class="review-title">' + r.title + '</div>' +
+            '<div class="review-body">' + r.body + '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+    renderReviews();
+
+    // ---------- write a review ----------
+    var selectedRating = 0;
+    var starPicks = document.querySelectorAll('.review-star-pick');
+    starPicks.forEach(function (star) {
+      star.addEventListener('click', function () {
+        selectedRating = parseInt(star.dataset.value, 10);
+        starPicks.forEach(function (s) {
+          s.style.color = parseInt(s.dataset.value, 10) <= selectedRating ? '#1a1a1a' : '#ccc';
+        });
+      });
+    });
+
+    document.getElementById('reviewForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = document.getElementById('reviewNameField').value.trim();
+      var title = document.getElementById('reviewTitleField').value.trim();
+      var body = document.getElementById('reviewBodyField').value.trim();
+      var errorEl = document.getElementById('reviewError');
+      var btn = document.getElementById('reviewSubmitBtn');
+
+      var errs = [];
+      if (!selectedRating) errs.push('a star rating');
+      if (!name) errs.push('your name');
+      if (!body) errs.push('a review');
+      if (errs.length) {
+        errorEl.textContent = 'Please add: ' + errs.join(', ') + '.';
+        errorEl.classList.add('show');
+        return;
+      }
+      errorEl.classList.remove('show');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id, name: name, rating: selectedRating, title: title, body: body }),
+      })
+        .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (res) {
+          btn.disabled = false;
+          btn.textContent = 'Submit Review';
+          if (!res.ok) {
+            errorEl.textContent = res.data.error || 'Something went wrong — please try again.';
+            errorEl.classList.add('show');
+            return;
+          }
+          reviews.unshift(res.data);
+          renderReviews();
+          document.getElementById('reviewForm').reset();
+          selectedRating = 0;
+          starPicks.forEach(function (s) { s.style.color = '#ccc'; });
+          ZZShop.showToast('Thanks for your review!');
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Submit Review';
+          errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
+          errorEl.classList.add('show');
+        });
+    });
 
     // ---------- related products ----------
     ZZShop.ready.then(function (allProducts) {

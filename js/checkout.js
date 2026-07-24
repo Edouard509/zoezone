@@ -18,7 +18,17 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
-  ZZShop.ready.then(function () { renderSummary(); });
+  var pendingDiscountPercent = 0;
+  var discountReady = fetch('/api/auth/customer/me', { credentials: 'same-origin' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (me) {
+      pendingDiscountPercent = (me && me.pendingDiscountPercent) || 0;
+    })
+    .catch(function () {});
+
+  ZZShop.ready.then(function () {
+    discountReady.then(function () { renderSummary(); });
+  });
 
   // ---------- order summary ----------
   function renderSummary() {
@@ -42,10 +52,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var subtotal = ZZShop.cartSubtotal();
     var shipping = subtotal >= 75 ? 0 : 6.95;
+    var discountAmount = Math.round(subtotal * (pendingDiscountPercent / 100) * 100) / 100;
+    var discountedSubtotal = subtotal - discountAmount;
+
     document.getElementById('summarySubtotal').textContent = '$' + subtotal.toFixed(2);
+    var discountRow = document.getElementById('summaryDiscountRow');
+    if (pendingDiscountPercent > 0) {
+      discountRow.style.display = '';
+      document.getElementById('summaryDiscount').textContent = '-$' + discountAmount.toFixed(2);
+    } else {
+      discountRow.style.display = 'none';
+    }
     document.getElementById('summaryShipping').textContent = shipping === 0 ? 'Free' : '$' + shipping.toFixed(2);
-    document.getElementById('summaryTotal').textContent = '$' + (subtotal + shipping).toFixed(2);
-    return { subtotal: subtotal, shipping: shipping, total: subtotal + shipping };
+    document.getElementById('summaryTotal').textContent = '$' + (discountedSubtotal + shipping).toFixed(2);
+    return { subtotal: subtotal, shipping: shipping, total: discountedSubtotal + shipping };
   }
 
   // ---------- map ----------
@@ -170,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!email || email.indexOf('@') === -1) errors.push('a valid email address');
     if (!whatsapp) errors.push('WhatsApp number');
     if (!address) errors.push('address');
+    if (!coords) errors.push('a pinned location on the map (drag the pin, or use Find My Address / Use My Current Location)');
     if (!selectedMethod) errors.push('a payment method');
     if (selectedMethod && selectedMethod !== 'card' && !hasScreenshot) errors.push('a payment screenshot');
 
@@ -217,6 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         }
         order.id = res.data.id;
+        if (res.data.total !== undefined) order.total = res.data.total;
         order.customer = { firstName: firstName, lastName: lastName, email: email, whatsapp: whatsapp, address: address, notes: notes };
         ZZShop.setCart([]);
         showConfirmation(order);

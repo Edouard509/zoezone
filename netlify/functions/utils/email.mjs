@@ -121,3 +121,31 @@ export function orderConfirmationHTML({ order }) {
     `Order placed at zoezone.co. Keep confirmation #${escapeHTML(order.id)} for your records.`
   );
 }
+
+const STATUS_COPY = {
+  pending: { headline: 'Your order is pending', body: "We've got your order and it's awaiting confirmation." },
+  confirmed: { headline: 'Your order is confirmed!', body: "We've confirmed your payment and we're getting your order ready." },
+  shipped: { headline: 'Your order is on its way!', body: "Your order has shipped and is headed your way." },
+  delivered: { headline: 'Your order has been delivered', body: "Your order was marked as delivered. We hope you love it!" },
+  cancelled: { headline: 'Your order was cancelled', body: "This order has been cancelled. Reach out if that doesn't look right." },
+};
+
+export function orderStatusUpdateHTML({ orderId, firstName, status }) {
+  const name = escapeHTML(firstName) || 'there';
+  const copy = STATUS_COPY[status] || { headline: 'Your order status was updated', body: '' };
+  return emailShell(
+    `
+      <h1 style="font-size:20px;margin:0 0 8px;">${escapeHTML(copy.headline)}</h1>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 16px;color:#555;">
+        Hi ${name}, ${copy.body}
+      </p>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 20px;">
+        Confirmation #: <strong>${escapeHTML(orderId)}</strong>
+      </p>
+      <a href="https://zoezone.co/track-order.html?id=${encodeURIComponent(orderId)}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+        Track Your Order
+      </a>
+    `,
+    `Order placed at zoezone.co. Keep confirmation #${escapeHTML(orderId)} for your records.`
+  );
+}

@@ -145,6 +145,36 @@
           <div id="ratingBars"></div>
         </div>
         <div id="reviewCards"></div>
+
+        <div class="write-review-box" style="max-width:480px;margin-top:32px;padding-top:28px;border-top:1px solid var(--line);">
+          <h3 style="font-size:16px;margin-bottom:16px;">Write a Review</h3>
+          <form id="reviewForm" novalidate>
+            <div class="field">
+              <label>Your Rating</label>
+              <div id="reviewStarPicker" style="display:flex;gap:6px;margin-top:4px;">
+                <span class="review-star-pick" data-value="1" style="cursor:pointer;font-size:22px;color:#ccc;">★</span>
+                <span class="review-star-pick" data-value="2" style="cursor:pointer;font-size:22px;color:#ccc;">★</span>
+                <span class="review-star-pick" data-value="3" style="cursor:pointer;font-size:22px;color:#ccc;">★</span>
+                <span class="review-star-pick" data-value="4" style="cursor:pointer;font-size:22px;color:#ccc;">★</span>
+                <span class="review-star-pick" data-value="5" style="cursor:pointer;font-size:22px;color:#ccc;">★</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="reviewNameField">Your Name</label>
+              <input type="text" id="reviewNameField" placeholder="Jane D.">
+            </div>
+            <div class="field">
+              <label for="reviewTitleField">Review Title</label>
+              <input type="text" id="reviewTitleField" placeholder="Sum it up in a few words">
+            </div>
+            <div class="field">
+              <label for="reviewBodyField">Your Review</label>
+              <textarea id="reviewBodyField" placeholder="What did you think?"></textarea>
+            </div>
+            <div class="checkout-error" id="reviewError"></div>
+            <button class="dash-save" type="submit" id="reviewSubmitBtn">Submit Review</button>
+          </form>
+        </div>
       </div>
 
       <!-- ================= RELATED ================= -->
@@ -196,7 +226,7 @@
       <div>
         <h4>Support</h4>
         <ul>
-          <li><a href="account.html">Track Order</a></li><li><a href="shipping-returns.html">Shipping &amp; Returns</a></li><li><a href="size-guide.html">Size Guide</a></li><li><a href="contact.html">Contact Us</a></li><li><a href="faq.html">FAQ</a></li>
+          <li><a href="track-order.html">Track Order</a></li><li><a href="shipping-returns.html">Shipping &amp; Returns</a></li><li><a href="size-guide.html">Size Guide</a></li><li><a href="contact.html">Contact Us</a></li><li><a href="faq.html">FAQ</a></li>
         </ul>
       </div>
       <div>

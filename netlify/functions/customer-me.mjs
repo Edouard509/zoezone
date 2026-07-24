@@ -42,6 +42,9 @@ export default async (req) => {
     lastName: c.last_name,
     whatsapp: c.whatsapp,
     address: c.address,
+    referralCode: c.referral_code,
+    pendingDiscountPercent: c.pending_discount_percent,
+    memberSince: c.created_at,
     orders,
   });
 };

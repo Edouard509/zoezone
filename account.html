@@ -94,6 +94,10 @@
         <label for="suPassword">Password</label>
         <input type="password" id="suPassword" required minlength="6">
       </div>
+      <div class="auth-field">
+        <label for="suReferral">Referral Code (optional)</label>
+        <input type="text" id="suReferral" placeholder="ZOE-XXXXXX">
+      </div>
       <div class="auth-error" id="suError">Please fill out every field (password must be at least 6 characters).</div>
       <button class="auth-submit" type="submit">Create Account</button>
     </form>
@@ -107,6 +111,7 @@
       <button class="active" type="button" data-panel="details">Account Details</button>
       <button type="button" data-panel="orders">Orders</button>
       <button type="button" data-panel="wishlist">Wishlist</button>
+      <button type="button" data-panel="rewards">Rewards</button>
       <button class="signout" type="button" id="signOutBtn">Sign Out</button>
     </div>
 
@@ -144,6 +149,24 @@
         <h2>Wishlist</h2>
         <p class="sub">Quick link to everything you've saved.</p>
         <div class="dash-empty"><a href="wishlist.html" style="color:var(--black);text-decoration:underline;">View your wishlist &rarr;</a></div>
+      </div>
+
+      <div class="dash-panel" id="panelRewards">
+        <h2>Rewards</h2>
+        <p class="sub" id="memberSinceText">&nbsp;</p>
+        <div style="border:1px solid var(--line);border-radius:6px;padding:22px;margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:10px;">Your Referral Code</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span id="referralCodeText" style="font-family:'Anton',sans-serif;font-size:20px;letter-spacing:1px;">ZOE-XXXXXX</span>
+            <button class="dash-save" type="button" id="copyReferralBtn" style="margin-top:0;padding:9px 16px;">Copy</button>
+          </div>
+          <p style="font-size:13px;color:#666;margin-top:14px;line-height:1.5;">
+            Share this code with a friend — when they create an account with it, you both get <strong>10% off</strong> your next order.
+          </p>
+        </div>
+        <div id="discountStatusBox" style="display:none;border:1px solid var(--black);border-radius:6px;padding:18px 22px;background:var(--cream);">
+          <strong>You have a 10% discount ready!</strong> It'll be applied automatically at checkout on your next order.
+        </div>
       </div>
     </div>
   </div>
@@ -193,7 +216,7 @@
       <div>
         <h4>Support</h4>
         <ul>
-          <li><a href="account.html">Track Order</a></li><li><a href="shipping-returns.html">Shipping &amp; Returns</a></li><li><a href="size-guide.html">Size Guide</a></li><li><a href="contact.html">Contact Us</a></li><li><a href="faq.html">FAQ</a></li>
+          <li><a href="track-order.html">Track Order</a></li><li><a href="shipping-returns.html">Shipping &amp; Returns</a></li><li><a href="size-guide.html">Size Guide</a></li><li><a href="contact.html">Contact Us</a></li><li><a href="faq.html">FAQ</a></li>
         </ul>
       </div>
       <div>
@@ -245,6 +268,13 @@
         document.getElementById('dWhatsapp').value = me.whatsapp || '';
         document.getElementById('dAddress').value = me.address || '';
         renderOrders(me.orders);
+
+        document.getElementById('referralCodeText').textContent = me.referralCode || '—';
+        if (me.memberSince) {
+          var since = new Date(me.memberSince).toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+          document.getElementById('memberSinceText').textContent = 'Member since ' + since;
+        }
+        document.getElementById('discountStatusBox').style.display = me.pendingDiscountPercent > 0 ? 'block' : 'none';
       }
       function showAuth() {
         authWrap.style.display = 'block';
@@ -313,6 +343,7 @@
         var name = document.getElementById('suName').value.trim();
         var email = document.getElementById('suEmail').value.trim();
         var pw = document.getElementById('suPassword').value;
+        var referralCode = document.getElementById('suReferral').value.trim();
         var errorEl = document.getElementById('suError');
         var submitBtn = e.target.querySelector('.auth-submit');
         if (!name || !email.includes('@') || pw.length < 6) {
@@ -326,7 +357,7 @@
         fetch('/api/auth/customer/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name, email: email, password: pw }),
+          body: JSON.stringify({ name: name, email: email, password: pw, referralCode: referralCode || undefined }),
           credentials: 'same-origin',
         })
           .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
@@ -386,6 +417,12 @@
             errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
             errorEl.style.display = 'block';
           });
+      });
+
+      document.getElementById('copyReferralBtn').addEventListener('click', function () {
+        var code = document.getElementById('referralCodeText').textContent;
+        navigator.clipboard.writeText(code);
+        ZZShop.showToast('Referral code copied');
       });
 
       document.getElementById('signOutBtn').addEventListener('click', function () {

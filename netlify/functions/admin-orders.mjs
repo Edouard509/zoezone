@@ -1,7 +1,9 @@
 import { db, serializeOrder } from './utils/db.mjs';
 import { json, requireAdmin } from './utils/auth.mjs';
+import { sendEmail, orderStatusUpdateHTML } from './utils/email.mjs';
 
 const VALID_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+const STATUS_LABEL = { pending: 'Pending', confirmed: 'Confirmed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled' };
 
 async function listOrders(req) {
   const url = new URL(req.url);
@@ -35,10 +37,21 @@ async function updateOrderStatus(id, req) {
     return json({ error: `Status must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 });
   }
   const database = db();
-  const existing = await database.sql`SELECT id FROM orders WHERE id = ${id} LIMIT 1`;
+  const existing = await database.sql`SELECT id, email, first_name, status FROM orders WHERE id = ${id} LIMIT 1`;
   if (!existing.length) return json({ error: 'Order not found' }, { status: 404 });
 
+  const order = existing[0];
   await database.sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
+
+  if (order.status !== status && order.email) {
+    await sendEmail({
+      to: order.email,
+      subject: `Order ${id} — ${STATUS_LABEL[status]}`,
+      html: orderStatusUpdateHTML({ orderId: id, firstName: order.first_name, status }),
+      fromEmail: 'orders@zoezone.co',
+    });
+  }
+
   return getOrder(id);
 }
 
