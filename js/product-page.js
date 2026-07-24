@@ -64,6 +64,13 @@
 
   function renderProduct(product) {
     document.title = product.name + ' — ZOEZONE';
+    if (window.ZZShop && ZZShop.trackEvent) {
+      ZZShop.trackEvent('view_item', {
+        currency: 'USD',
+        value: product.price,
+        items: [{ item_id: product.id, item_name: product.name, price: product.price }]
+      });
+    }
     var pageDesc = (product.description || (product.name + ' — shop premium streetwear at ZOEZONE, made in Haiti.')).slice(0, 160);
     var pageUrl = 'https://zoezone.co/product.html?id=' + encodeURIComponent(product.id);
     var descTag = document.querySelector('meta[name="description"]');

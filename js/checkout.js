@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
+  ZZShop.ready.then(function () {
+    var items = ZZShop.getCart().map(function (line) {
+      var p = ZZShop.findProduct(line.id);
+      return p ? { item_id: p.id, item_name: p.name, price: p.price, quantity: line.qty } : null;
+    }).filter(Boolean);
+    ZZShop.trackEvent('begin_checkout', { currency: 'USD', value: ZZShop.cartSubtotal(), items: items });
+  });
+
   var pendingDiscountPercent = 0;
   var appliedPromo = null; // { code, discountType, discountValue } — overrides the referral discount when set
   var discountReady = fetch('/api/auth/customer/me', { credentials: 'same-origin' })
@@ -288,6 +296,13 @@ document.addEventListener('DOMContentLoaded', function () {
         order.id = res.data.id;
         if (res.data.total !== undefined) order.total = res.data.total;
         order.customer = { firstName: firstName, lastName: lastName, email: email, whatsapp: whatsapp, address: address, notes: notes };
+        ZZShop.trackEvent('purchase', {
+          transaction_id: order.id,
+          currency: 'USD',
+          value: order.total,
+          shipping: order.shipping,
+          items: cartSnapshot.map(function (it) { return { item_id: it.id, item_name: it.name, price: it.price, quantity: it.qty }; })
+        });
         ZZShop.setCart([]);
         showConfirmation(order);
       })
