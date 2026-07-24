@@ -78,6 +78,7 @@ export function serializeOrder(row, items) {
     customer: {
       firstName: row.first_name,
       lastName: row.last_name,
+      email: row.email,
       whatsapp: row.whatsapp,
       address: row.address,
       notes: row.notes,

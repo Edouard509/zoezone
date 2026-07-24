@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('placeOrderBtn').addEventListener('click', function () {
     var firstName = document.getElementById('firstNameField').value.trim();
     var lastName = document.getElementById('lastNameField').value.trim();
+    var email = document.getElementById('emailField').value.trim();
     var whatsapp = document.getElementById('whatsappField').value.trim();
     var address = document.getElementById('addressField').value.trim();
     var notes = document.getElementById('notesField').value.trim();
@@ -166,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var errors = [];
     if (!firstName) errors.push('first name');
     if (!lastName) errors.push('last name');
+    if (!email || email.indexOf('@') === -1) errors.push('a valid email address');
     if (!whatsapp) errors.push('WhatsApp number');
     if (!address) errors.push('address');
     if (!selectedMethod) errors.push('a payment method');
@@ -186,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     var order = {
-      firstName: firstName, lastName: lastName, whatsapp: whatsapp, address: address, notes: notes,
+      firstName: firstName, lastName: lastName, email: email, whatsapp: whatsapp, address: address, notes: notes,
       location: coords,
       payment: { method: selectedMethod },
       items: cartSnapshot,
@@ -215,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         }
         order.id = res.data.id;
-        order.customer = { firstName: firstName, lastName: lastName, whatsapp: whatsapp, address: address, notes: notes };
+        order.customer = { firstName: firstName, lastName: lastName, email: email, whatsapp: whatsapp, address: address, notes: notes };
         ZZShop.setCart([]);
         showConfirmation(order);
       })

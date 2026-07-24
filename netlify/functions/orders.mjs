@@ -1,5 +1,6 @@
 import { db, serializeOrder } from './utils/db.mjs';
 import { json, getCustomerFromRequest } from './utils/auth.mjs';
+import { sendEmail, orderConfirmationHTML } from './utils/email.mjs';
 
 function generateOrderId() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-4);
@@ -11,11 +12,12 @@ async function createOrder(req) {
   const body = await req.json().catch(() => null);
   if (!body) return json({ error: 'Invalid request body' }, { status: 400 });
 
-  const { firstName, lastName, whatsapp, address, notes, location, payment, items, subtotal, shipping, total } = body;
+  const { firstName, lastName, email, whatsapp, address, notes, location, payment, items, subtotal, shipping, total } = body;
 
   const errors = [];
   if (!firstName) errors.push('first name');
   if (!lastName) errors.push('last name');
+  if (!email || !email.includes('@')) errors.push('a valid email address');
   if (!whatsapp) errors.push('WhatsApp number');
   if (!address) errors.push('address');
   if (!payment || !payment.method) errors.push('payment method');
@@ -30,9 +32,9 @@ async function createOrder(req) {
 
   await database.sql`
     INSERT INTO orders
-      (id, customer_id, first_name, last_name, whatsapp, address, notes, lat, lng, payment_method, subtotal, shipping, total, status)
+      (id, customer_id, first_name, last_name, email, whatsapp, address, notes, lat, lng, payment_method, subtotal, shipping, total, status)
     VALUES
-      (${orderId}, ${customer ? customer.sub : null}, ${firstName}, ${lastName}, ${whatsapp}, ${address}, ${notes || null},
+      (${orderId}, ${customer ? customer.sub : null}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
        ${location ? location.lat : null}, ${location ? location.lng : null}, ${payment.method},
        ${subtotal}, ${shipping}, ${total}, 'pending')
   `;
@@ -43,6 +45,21 @@ async function createOrder(req) {
       VALUES (${orderId}, ${item.id || null}, ${item.name}, ${item.price}, ${item.qty}, ${item.size || null}, ${item.color || null})
     `;
   }
+
+  const orderForEmail = {
+    id: orderId,
+    customer: { firstName, lastName, email, whatsapp, address, notes },
+    items,
+    subtotal,
+    shipping,
+    total,
+  };
+  await sendEmail({
+    to: email,
+    subject: `Order Confirmed — ${orderId}`,
+    html: orderConfirmationHTML({ order: orderForEmail }),
+    fromEmail: 'orders@zoezone.co',
+  });
 
   return json({ id: orderId }, { status: 201 });
 }

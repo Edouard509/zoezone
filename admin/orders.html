@@ -201,6 +201,7 @@
         '<div style="margin-bottom:20px;">' +
           '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:8px;">Customer</div>' +
           '<div style="font-size:14px;font-weight:600;">' + ZZAdmin.escapeHTML(((o.customer.firstName || '') + ' ' + (o.customer.lastName || '')).trim() || '—') + '</div>' +
+          '<div style="font-size:13px;color:#555;margin-top:3px;">Email: ' + ZZAdmin.escapeHTML(o.customer.email || '—') + '</div>' +
           '<div style="font-size:13px;color:#555;margin-top:3px;">WhatsApp: ' + ZZAdmin.escapeHTML(o.customer.whatsapp || '—') + '</div>' +
           '<div style="font-size:13px;color:#555;margin-top:3px;">Address: ' + ZZAdmin.escapeHTML(o.customer.address || '—') + '</div>' +
           (o.customer.notes ? '<div style="font-size:13px;color:#555;margin-top:3px;">Notes: ' + ZZAdmin.escapeHTML(o.customer.notes) + '</div>' : '') +
