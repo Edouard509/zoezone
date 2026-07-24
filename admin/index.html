@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — ZOEZONE Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <div class="admin-sidebar">
+      <div class="brand"><img src="../assets/logo-black.png" alt="ZOEZONE"></div>
+      <nav>
+        <a href="index.html" data-page="index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="products.html" data-page="products.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Products
+        </a>
+        <a href="orders.html" data-page="orders.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Orders
+        </a>
+        <a href="settings.html" data-page="settings.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+      <div class="admin-who" id="adminWho">&nbsp;</div>
+      <a href="#" class="signout-link" id="adminSignOut" style="padding:11px 12px;font-size:13px;font-weight:600;">Sign Out</a>
+    </div>
+
+    <div class="admin-main">
+      <div class="admin-page-head">
+        <div>
+          <h1>Dashboard</h1>
+          <div class="sub">Store overview at a glance.</div>
+        </div>
+      </div>
+
+      <div class="admin-stats" id="statsGrid">
+        <div class="admin-stat"><div class="num">—</div><div class="label">Total Orders</div></div>
+        <div class="admin-stat"><div class="num">—</div><div class="label">Pending Orders</div></div>
+        <div class="admin-stat"><div class="num">—</div><div class="label">Revenue (All Orders)</div></div>
+        <div class="admin-stat"><div class="num">—</div><div class="label">Active Products</div></div>
+      </div>
+
+      <div class="admin-table-wrap">
+        <div class="admin-toolbar"><strong style="font-size:13px;">Recent Orders</strong><div class="spacer"></div><a href="orders.html" style="font-size:12.5px;text-decoration:underline;">View all &rarr;</a></div>
+        <table class="admin-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Placed</th></tr></thead>
+          <tbody id="recentOrdersBody"><tr class="admin-empty-row"><td colspan="5">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin-common.js"></script>
+  <script>
+    var STATUS_LABEL = { pending: 'Pending', confirmed: 'Confirmed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled' };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      ZZAdmin.init().then(function (admin) {
+        if (!admin) return;
+        loadDashboard();
+      });
+    });
+
+    function loadDashboard() {
+      Promise.all([
+        ZZAdmin.api('/api/admin/orders'),
+        ZZAdmin.api('/api/admin/products'),
+      ]).then(function (results) {
+        var ordersRes = results[0], productsRes = results[1];
+        var orders = ordersRes.ok ? ordersRes.data : [];
+        var products = productsRes.ok ? productsRes.data : [];
+
+        var pending = orders.filter(function (o) { return o.status === 'pending'; }).length;
+        var revenue = orders.reduce(function (sum, o) { return sum + o.total; }, 0);
+        var activeProducts = products.filter(function (p) { return p.active; }).length;
+
+        var stats = document.querySelectorAll('#statsGrid .admin-stat .num');
+        stats[0].textContent = orders.length;
+        stats[1].textContent = pending;
+        stats[2].textContent = '$' + revenue.toFixed(2);
+        stats[3].textContent = activeProducts;
+
+        var body = document.getElementById('recentOrdersBody');
+        var recent = orders.slice(0, 8);
+        if (!recent.length) {
+          body.innerHTML = '<tr class="admin-empty-row"><td colspan="5">No orders yet.</td></tr>';
+          return;
+        }
+        body.innerHTML = recent.map(function (o) {
+          var date = new Date(o.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          var name = ZZAdmin.escapeHTML(((o.customer.firstName || '') + ' ' + (o.customer.lastName || '')).trim() || '—');
+          return (
+            '<tr>' +
+              '<td><a href="orders.html?id=' + encodeURIComponent(o.id) + '" style="text-decoration:underline;">' + o.id + '</a></td>' +
+              '<td>' + name + '</td>' +
+              '<td>$' + o.total.toFixed(2) + '</td>' +
+              '<td><span class="admin-badge status-' + o.status + '">' + (STATUS_LABEL[o.status] || o.status) + '</span></td>' +
+              '<td>' + date + '</td>' +
+            '</tr>'
+          );
+        }).join('');
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Sign In — ZOEZONE</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+</head>
+<body class="admin-body">
+
+  <div class="admin-login-wrap">
+    <div class="admin-login-logo">
+      <img src="../assets/logo-black.png" alt="ZOEZONE">
+    </div>
+    <h1>Admin Sign In</h1>
+    <p class="sub">Store management — authorized staff only.</p>
+
+    <div class="admin-card">
+      <form id="loginForm" novalidate>
+        <div class="admin-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required autocomplete="username">
+        </div>
+        <div class="admin-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="current-password">
+        </div>
+        <div class="admin-error" id="loginError">Invalid email or password.</div>
+        <button class="admin-btn full" type="submit" id="loginBtn">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/admin-common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Already signed in? skip straight to dashboard.
+      ZZAdmin.api('/api/auth/admin/me').then(function (res) {
+        if (res.ok) window.location.href = 'index.html';
+      });
+
+      document.getElementById('loginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = document.getElementById('email').value.trim();
+        var password = document.getElementById('password').value;
+        var errorEl = document.getElementById('loginError');
+        var btn = document.getElementById('loginBtn');
+        errorEl.classList.remove('show');
+        btn.disabled = true;
+        btn.textContent = 'Signing In…';
+        ZZAdmin.api('/api/auth/admin/login', {
+          method: 'POST',
+          body: JSON.stringify({ email: email, password: password }),
+        }).then(function (res) {
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+          if (!res.ok) {
+            errorEl.textContent = res.data.error || 'Invalid email or password.';
+            errorEl.classList.add('show');
+            return;
+          }
+          window.location.href = 'index.html';
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+          errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
+          errorEl.classList.add('show');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — ZOEZONE Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <div class="admin-sidebar">
+      <div class="brand"><img src="../assets/logo-black.png" alt="ZOEZONE"></div>
+      <nav>
+        <a href="index.html" data-page="index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="products.html" data-page="products.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Products
+        </a>
+        <a href="orders.html" data-page="orders.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Orders
+        </a>
+        <a href="settings.html" data-page="settings.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+      <div class="admin-who" id="adminWho">&nbsp;</div>
+      <a href="#" class="signout-link" id="adminSignOut" style="padding:11px 12px;font-size:13px;font-weight:600;">Sign Out</a>
+    </div>
+
+    <div class="admin-main">
+      <div class="admin-page-head">
+        <div>
+          <h1>Settings</h1>
+          <div class="sub">Manage your admin account.</div>
+        </div>
+      </div>
+
+      <div class="admin-card" style="max-width:420px;">
+        <h3 style="font-size:15px;margin-bottom:18px;">Change Password</h3>
+        <form id="pwForm" novalidate>
+          <div class="admin-field">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" id="currentPassword" required autocomplete="current-password">
+          </div>
+          <div class="admin-field">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" required minlength="8" autocomplete="new-password">
+          </div>
+          <div class="admin-field">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input type="password" id="confirmPassword" required minlength="8" autocomplete="new-password">
+          </div>
+          <div class="admin-error" id="pwError"></div>
+          <button class="admin-btn" type="submit" id="pwBtn">Update Password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin-common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      ZZAdmin.init();
+
+      document.getElementById('pwForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var current = document.getElementById('currentPassword').value;
+        var next = document.getElementById('newPassword').value;
+        var confirm = document.getElementById('confirmPassword').value;
+        var errorEl = document.getElementById('pwError');
+        var btn = document.getElementById('pwBtn');
+
+        if (next.length < 8) {
+          errorEl.textContent = 'New password must be at least 8 characters.';
+          errorEl.classList.add('show');
+          return;
+        }
+        if (next !== confirm) {
+          errorEl.textContent = 'New password and confirmation do not match.';
+          errorEl.classList.add('show');
+          return;
+        }
+        errorEl.classList.remove('show');
+        btn.disabled = true;
+        btn.textContent = 'Updating…';
+
+        ZZAdmin.api('/api/auth/admin/change-password', {
+          method: 'POST',
+          body: JSON.stringify({ currentPassword: current, newPassword: next }),
+        }).then(function (res) {
+          btn.disabled = false;
+          btn.textContent = 'Update Password';
+          if (!res.ok) {
+            errorEl.textContent = res.data.error || 'Something went wrong — please try again.';
+            errorEl.classList.add('show');
+            return;
+          }
+          document.getElementById('pwForm').reset();
+          ZZAdmin.showToast('Password updated');
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Update Password';
+          errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
+          errorEl.classList.add('show');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

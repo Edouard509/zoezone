@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products — ZOEZONE Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+</head>
+<body class="admin-body">
+
+  <div class="admin-shell">
+    <div class="admin-sidebar">
+      <div class="brand"><img src="../assets/logo-black.png" alt="ZOEZONE"></div>
+      <nav>
+        <a href="index.html" data-page="index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="products.html" data-page="products.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Products
+        </a>
+        <a href="orders.html" data-page="orders.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Orders
+        </a>
+        <a href="settings.html" data-page="settings.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+      <div class="admin-who" id="adminWho">&nbsp;</div>
+      <a href="#" class="signout-link" id="adminSignOut" style="padding:11px 12px;font-size:13px;font-weight:600;">Sign Out</a>
+    </div>
+
+    <div class="admin-main">
+      <div class="admin-page-head">
+        <div>
+          <h1>Products</h1>
+          <div class="sub">Add new items, edit prices, or take products offline.</div>
+        </div>
+        <button class="admin-btn" id="addProductBtn">+ Add Product</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <div class="admin-toolbar">
+          <input type="text" id="searchInput" placeholder="Search products…">
+          <select id="categoryFilter">
+            <option value="">All Categories</option>
+            <option value="tops">Tops</option>
+            <option value="bottoms">Bottoms</option>
+            <option value="outerwear">Outerwear</option>
+            <option value="accessories">Accessories</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <div class="spacer"></div>
+          <span id="productCount" style="font-size:12px;color:#888;"></span>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th></th><th>Name</th><th>Collection</th><th>Categories</th><th>Price</th><th>Status</th><th></th></tr></thead>
+          <tbody id="productsBody"><tr class="admin-empty-row"><td colspan="7">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- ADD/EDIT PANEL ---------- -->
+  <div class="admin-panel-overlay" id="productOverlay">
+    <div class="admin-panel">
+      <div class="admin-panel-head">
+        <h2 id="panelTitle">Add Product</h2>
+        <button class="admin-panel-close" id="panelCloseBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+        </button>
+      </div>
+
+      <form id="productForm" novalidate>
+        <input type="hidden" id="pId">
+
+        <div class="admin-field">
+          <label>Photo</label>
+          <div class="admin-image-preview" id="imagePreview">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" style="width:28px;height:28px;stroke:#bbb;"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 15l4-4 4 4 4-6 4 8"/></svg>
+          </div>
+          <input type="file" id="imageFile" accept="image/*">
+          <div class="admin-hint" id="uploadHint"></div>
+          <input type="hidden" id="pImageUrl">
+        </div>
+
+        <div class="admin-field-row">
+          <div class="admin-field">
+            <label for="pName">Name *</label>
+            <input type="text" id="pName" required>
+          </div>
+          <div class="admin-field">
+            <label for="pCollection">Collection</label>
+            <input type="text" id="pCollection" placeholder="Signature">
+          </div>
+        </div>
+
+        <div class="admin-field-row">
+          <div class="admin-field">
+            <label for="pPrice">Price ($) *</label>
+            <input type="number" id="pPrice" min="0" step="0.01" required>
+          </div>
+          <div class="admin-field">
+            <label for="pWas">Sale — Was Price ($)</label>
+            <input type="number" id="pWas" min="0" step="0.01" placeholder="Leave blank if not on sale">
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label>Categories</label>
+          <div class="admin-checkbox-row">
+            <label><input type="checkbox" value="tops" class="pCategory"> Tops</label>
+            <label><input type="checkbox" value="bottoms" class="pCategory"> Bottoms</label>
+            <label><input type="checkbox" value="outerwear" class="pCategory"> Outerwear</label>
+            <label><input type="checkbox" value="accessories" class="pCategory"> Accessories</label>
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label>Landing Page Tags</label>
+          <div class="admin-checkbox-row">
+            <label><input type="checkbox" value="new-era" class="pTag"> The New Era</label>
+            <label><input type="checkbox" value="bestseller" class="pTag"> Best Seller</label>
+          </div>
+        </div>
+
+        <div class="admin-field-row">
+          <div class="admin-field">
+            <label for="pColors">Colors (comma-separated)</label>
+            <input type="text" id="pColors" placeholder="black, gray, cream">
+          </div>
+          <div class="admin-field">
+            <label for="pSizes">Sizes (comma-separated)</label>
+            <input type="text" id="pSizes" placeholder="S, M, L, XL">
+          </div>
+        </div>
+
+        <div class="admin-field-row">
+          <div class="admin-field">
+            <label for="pBadge">Badge Text</label>
+            <input type="text" id="pBadge" placeholder="e.g. New">
+          </div>
+          <div class="admin-field">
+            <label>&nbsp;</label>
+            <div class="admin-checkbox-row" style="margin-top:10px;">
+              <label><input type="checkbox" id="pIsNew"> Mark as New Arrival</label>
+              <label><input type="checkbox" id="pActive" checked> Active (visible on site)</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label for="pDescription">Description</label>
+          <textarea id="pDescription"></textarea>
+        </div>
+
+        <div class="admin-field">
+          <label for="pDetails">Details (one per line)</label>
+          <textarea id="pDetails" placeholder="100% cotton&#10;Made in Haiti&#10;Machine wash cold"></textarea>
+        </div>
+
+        <div class="admin-error" id="formError"></div>
+
+        <div class="admin-panel-footer">
+          <button type="button" class="admin-btn outline" id="cancelBtn">Cancel</button>
+          <button type="submit" class="admin-btn" id="saveBtn">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/admin-common.js"></script>
+  <script>
+    var allProducts = [];
+    var editingId = null;
+    var uploadedImageUrl = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      ZZAdmin.init().then(function (admin) {
+        if (!admin) return;
+        loadProducts();
+      });
+
+      document.getElementById('addProductBtn').addEventListener('click', openAddPanel);
+      document.getElementById('panelCloseBtn').addEventListener('click', closePanel);
+      document.getElementById('cancelBtn').addEventListener('click', closePanel);
+      document.getElementById('productOverlay').addEventListener('click', function (e) {
+        if (e.target === e.currentTarget) closePanel();
+      });
+      document.getElementById('productForm').addEventListener('submit', handleSubmit);
+      document.getElementById('imageFile').addEventListener('change', handleImageUpload);
+
+      document.getElementById('searchInput').addEventListener('input', renderTable);
+      document.getElementById('categoryFilter').addEventListener('change', renderTable);
+      document.getElementById('statusFilter').addEventListener('change', renderTable);
+    });
+
+    function loadProducts() {
+      ZZAdmin.api('/api/admin/products').then(function (res) {
+        if (!res.ok) {
+          document.getElementById('productsBody').innerHTML = '<tr class="admin-empty-row"><td colspan="7">Could not load products.</td></tr>';
+          return;
+        }
+        allProducts = res.data;
+        renderTable();
+      });
+    }
+
+    function renderTable() {
+      var q = document.getElementById('searchInput').value.trim().toLowerCase();
+      var cat = document.getElementById('categoryFilter').value;
+      var status = document.getElementById('statusFilter').value;
+
+      var filtered = allProducts.filter(function (p) {
+        if (q && p.name.toLowerCase().indexOf(q) === -1) return false;
+        if (cat && p.categories.indexOf(cat) === -1) return false;
+        if (status === 'active' && !p.active) return false;
+        if (status === 'inactive' && p.active) return false;
+        return true;
+      });
+
+      document.getElementById('productCount').textContent = filtered.length + ' of ' + allProducts.length + ' products';
+
+      var body = document.getElementById('productsBody');
+      if (!filtered.length) {
+        body.innerHTML = '<tr class="admin-empty-row"><td colspan="7">No products match.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = filtered.map(function (p) {
+        var priceHTML = p.was
+          ? '<span style="text-decoration:line-through;color:#999;margin-right:6px;">$' + p.was.toFixed(2) + '</span>$' + p.price.toFixed(2)
+          : '$' + p.price.toFixed(2);
+        return (
+          '<tr>' +
+            '<td><div class="admin-thumb">' + p.art + '</div></td>' +
+            '<td>' + ZZAdmin.escapeHTML(p.name) + '</td>' +
+            '<td>' + ZZAdmin.escapeHTML(p.collection) + '</td>' +
+            '<td>' + (p.categories.map(ZZAdmin.escapeHTML).join(', ') || '—') + '</td>' +
+            '<td>' + priceHTML + '</td>' +
+            '<td><span class="admin-badge ' + (p.active ? 'active' : 'inactive') + '">' + (p.active ? 'Active' : 'Inactive') + '</span></td>' +
+            '<td><div class="admin-row-actions">' +
+              '<button type="button" data-edit="' + p.id + '">Edit</button>' +
+              '<button type="button" class="danger" data-delete="' + p.id + '">Delete</button>' +
+            '</div></td>' +
+          '</tr>'
+        );
+      }).join('');
+
+      body.querySelectorAll('[data-edit]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openEditPanel(btn.dataset.edit); });
+      });
+      body.querySelectorAll('[data-delete]').forEach(function (btn) {
+        btn.addEventListener('click', function () { handleDelete(btn.dataset.delete); });
+      });
+    }
+
+    function resetForm() {
+      document.getElementById('productForm').reset();
+      document.getElementById('pId').value = '';
+      document.getElementById('pImageUrl').value = '';
+      document.getElementById('pActive').checked = true;
+      uploadedImageUrl = null;
+      document.getElementById('imagePreview').innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.4" style="width:28px;height:28px;stroke:#bbb;"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 15l4-4 4 4 4-6 4 8"/></svg>';
+      document.getElementById('uploadHint').textContent = '';
+      document.getElementById('formError').classList.remove('show');
+      document.querySelectorAll('.pCategory, .pTag').forEach(function (cb) { cb.checked = false; });
+    }
+
+    function openAddPanel() {
+      resetForm();
+      editingId = null;
+      document.getElementById('panelTitle').textContent = 'Add Product';
+      document.getElementById('productOverlay').classList.add('open');
+    }
+
+    function openEditPanel(id) {
+      var p = allProducts.filter(function (x) { return x.id === id; })[0];
+      if (!p) return;
+      resetForm();
+      editingId = id;
+      document.getElementById('panelTitle').textContent = 'Edit Product';
+      document.getElementById('pId').value = p.id;
+      document.getElementById('pName').value = p.name;
+      document.getElementById('pCollection').value = p.collection || '';
+      document.getElementById('pPrice').value = p.price;
+      document.getElementById('pWas').value = p.was || '';
+      document.getElementById('pColors').value = (p.colors || []).join(', ');
+      document.getElementById('pSizes').value = (p.sizes || []).join(', ');
+      document.getElementById('pBadge').value = p.badge || '';
+      document.getElementById('pIsNew').checked = !!p.isNew;
+      document.getElementById('pActive').checked = !!p.active;
+      document.getElementById('pDescription').value = p.description || '';
+      document.getElementById('pDetails').value = (p.details || []).join('\n');
+      (p.categories || []).forEach(function (c) {
+        var cb = document.querySelector('.pCategory[value="' + c + '"]');
+        if (cb) cb.checked = true;
+      });
+      (p.tags || []).forEach(function (t) {
+        var cb = document.querySelector('.pTag[value="' + t + '"]');
+        if (cb) cb.checked = true;
+      });
+      if (p.art) document.getElementById('imagePreview').innerHTML = p.art;
+      document.getElementById('productOverlay').classList.add('open');
+    }
+
+    function closePanel() {
+      document.getElementById('productOverlay').classList.remove('open');
+    }
+
+    function handleImageUpload() {
+      var file = document.getElementById('imageFile').files[0];
+      if (!file) return;
+      var hint = document.getElementById('uploadHint');
+      hint.textContent = 'Uploading…';
+      var formData = new FormData();
+      formData.append('file', file);
+      ZZAdmin.api('/api/admin/upload', { method: 'POST', body: formData }).then(function (res) {
+        if (!res.ok) {
+          hint.textContent = res.data.error || 'Upload failed — please try again.';
+          return;
+        }
+        uploadedImageUrl = res.data.url;
+        document.getElementById('pImageUrl').value = uploadedImageUrl;
+        document.getElementById('imagePreview').innerHTML = '<img src="' + uploadedImageUrl + '" alt="Preview">';
+        hint.textContent = 'Photo uploaded.';
+      }).catch(function () {
+        hint.textContent = 'Upload failed — check your connection and try again.';
+      });
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('formError');
+      var name = document.getElementById('pName').value.trim();
+      var price = parseFloat(document.getElementById('pPrice').value);
+      if (!name || isNaN(price)) {
+        errorEl.textContent = 'Name and a valid price are required.';
+        errorEl.classList.add('show');
+        return;
+      }
+      errorEl.classList.remove('show');
+
+      var was = document.getElementById('pWas').value;
+      var categories = Array.prototype.map.call(document.querySelectorAll('.pCategory:checked'), function (cb) { return cb.value; });
+      var tags = Array.prototype.map.call(document.querySelectorAll('.pTag:checked'), function (cb) { return cb.value; });
+      var colors = document.getElementById('pColors').value.split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
+      var sizes = document.getElementById('pSizes').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+      var details = document.getElementById('pDetails').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+
+      var body = {
+        name: name,
+        collection: document.getElementById('pCollection').value.trim() || 'Signature',
+        price: price,
+        was: was ? parseFloat(was) : null,
+        categories: categories,
+        tags: tags,
+        colors: colors,
+        sizes: sizes,
+        badge: document.getElementById('pBadge').value.trim() || null,
+        isNew: document.getElementById('pIsNew').checked,
+        active: document.getElementById('pActive').checked,
+        description: document.getElementById('pDescription').value.trim(),
+        details: details,
+      };
+      if (uploadedImageUrl) body.imageUrl = uploadedImageUrl;
+
+      var saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
+      var request = editingId
+        ? ZZAdmin.api('/api/admin/products/' + encodeURIComponent(editingId), { method: 'PUT', body: JSON.stringify(body) })
+        : ZZAdmin.api('/api/admin/products', { method: 'POST', body: JSON.stringify(body) });
+
+      request.then(function (res) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Product';
+        if (!res.ok) {
+          errorEl.textContent = res.data.error || 'Something went wrong saving this product.';
+          errorEl.classList.add('show');
+          return;
+        }
+        closePanel();
+        ZZAdmin.showToast(editingId ? 'Product updated' : 'Product added');
+        loadProducts();
+      }).catch(function () {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Product';
+        errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
+        errorEl.classList.add('show');
+      });
+    }
+
+    function handleDelete(id) {
+      var p = allProducts.filter(function (x) { return x.id === id; })[0];
+      if (!p) return;
+      if (!window.confirm('Delete "' + p.name + '"? This cannot be undone.')) return;
+      ZZAdmin.api('/api/admin/products/' + encodeURIComponent(id), { method: 'DELETE' }).then(function (res) {
+        if (!res.ok) {
+          ZZAdmin.showToast(res.data.error || 'Could not delete this product.');
+          return;
+        }
+        ZZAdmin.showToast('Product deleted');
+        loadProducts();
+      });
+    }
+  </script>
+</body>
+</html>

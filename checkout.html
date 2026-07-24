@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — ZOEZONE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+</head>
+<body>
+
+  <div class="announce">Free Shipping On Orders $75+ &nbsp;|&nbsp; New Drop: The New Era — Now Live</div>
+
+  <header>
+    <div class="nav-top">
+      <div class="nav-left">
+        <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="navBottom">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+        </button>
+        <a href="search.html" class="search-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Search
+        </a>
+      </div>
+
+      <div class="logo">
+        <a href="index.html"><img class="logo-img" src="assets/logo-black.png" alt="ZOEZONE"></a>
+      </div>
+
+      <div class="nav-right">
+        <a href="search.html" class="icon-btn" aria-label="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </a>
+        <a href="account.html" class="icon-btn" aria-label="Account">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </a>
+        <a href="wishlist.html" class="icon-btn" aria-label="Wishlist">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          <span class="wishlist-count">0</span>
+        </a>
+        <a href="cart.html" class="icon-btn" aria-label="Bag">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-count">0</span>
+        </a>
+      </div>
+    </div>
+    <nav class="nav-bottom" id="navBottom">
+      <a href="new-arrivals.html">New Arrivals</a>
+      <a href="the-new-era.html">The New Era</a>
+      <a href="tops.html">Tops</a>
+      <a href="bottoms.html">Bottoms</a>
+      <a href="outerwear.html">Outerwear</a>
+      <a href="accessories.html">Accessories</a>
+      <a href="sale.html" class="sale">Sale</a>
+    </nav>
+    <div class="nav-backdrop" id="navBackdrop"></div>
+  </header>
+
+  <div class="wrap">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><a href="cart.html">Your Bag</a><span class="sep">/</span><span class="current">Checkout</span></div>
+  </div>
+
+  <div class="collection-banner">
+    <div class="kicker">Almost There</div>
+    <h1>Checkout</h1>
+  </div>
+
+  <section class="section" style="padding-top:10px;">
+    <div class="wrap">
+
+      <!-- ================= EMPTY CART ================= -->
+      <div class="cart-empty" id="checkoutEmpty" style="display:none;">
+        <p>Your bag is empty — add something before checking out.</p>
+        <a href="index.html" class="hero-cta">Continue Shopping</a>
+      </div>
+
+      <!-- ================= CHECKOUT FORM ================= -->
+      <div class="cart-page-grid" id="checkoutFormSection">
+        <div class="cart-items">
+
+          <div class="checkout-section-title">Contact &amp; Shipping</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="firstNameField">First Name</label>
+              <input type="text" id="firstNameField" autocomplete="given-name">
+            </div>
+            <div class="field">
+              <label for="lastNameField">Last Name</label>
+              <input type="text" id="lastNameField" autocomplete="family-name">
+            </div>
+          </div>
+          <div class="field">
+            <label for="whatsappField">WhatsApp Phone Number</label>
+            <input type="tel" id="whatsappField" placeholder="+509 1234 5678" autocomplete="tel">
+          </div>
+          <div class="field">
+            <label for="addressField">Address</label>
+            <textarea id="addressField" placeholder="Street, city, area..."></textarea>
+          </div>
+          <div class="field">
+            <label for="notesField">Delivery Notes (optional)</label>
+            <textarea id="notesField" placeholder="Gate code, landmark, best time to deliver..."></textarea>
+          </div>
+
+          <div class="checkout-section-title">Pin Your Exact Location</div>
+          <div class="map-actions">
+            <button class="btn-outline" type="button" id="findAddressBtn">Find My Address</button>
+            <button class="btn-outline" type="button" id="locateMeBtn">Use My Current Location</button>
+          </div>
+          <div class="map-box" id="checkoutMap"></div>
+          <div class="coords-readout" id="coordsReadout">Drag the pin to your exact drop-off spot.</div>
+
+          <div class="checkout-section-title">Payment Method</div>
+          <div class="pay-methods">
+            <div class="pay-tile" data-method="moncash">
+              <img src="assets/pay-moncash.png" alt="MonCash">
+              <div class="pt-name">MonCash</div>
+            </div>
+            <div class="pay-tile" data-method="natcash">
+              <img src="assets/pay-natcash.png" alt="NatCash">
+              <div class="pt-name">NatCash</div>
+            </div>
+            <div class="pay-tile" data-method="card">
+              <svg class="pt-card-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <div class="pt-name">Credit / Debit</div>
+            </div>
+            <div class="pay-tile" data-method="paypal">
+              <img src="assets/pay-paypal.png" alt="PayPal">
+              <div class="pt-name">PayPal</div>
+            </div>
+            <div class="pay-tile" data-method="zelle">
+              <img src="assets/pay-zelle.png" alt="Zelle">
+              <div class="pt-name">Zelle</div>
+            </div>
+            <div class="pay-tile" data-method="cashapp">
+              <img src="assets/pay-cashapp.png" alt="Cash App">
+              <div class="pt-name">Cash App</div>
+            </div>
+          </div>
+
+          <!-- manual payment (MonCash / NatCash / PayPal / Zelle / CashApp) -->
+          <div class="pay-detail" id="manualPayDetail">
+            <div id="payInfoArea"></div>
+            <div class="upload-box" id="uploadBox">
+              <input type="file" id="uploadInput" accept="image/*">
+              <div class="up-label">Tap to upload your payment screenshot</div>
+              <div class="up-hint">JPG or PNG — this stays on your device until you attach it in WhatsApp</div>
+              <img class="upload-preview" id="uploadPreview" alt="Payment screenshot preview">
+            </div>
+          </div>
+
+          <!-- card (no gateway yet — fields are cosmetic and never stored) -->
+          <div class="pay-detail" id="cardPayDetail">
+            <h4>Card Details</h4>
+            <div class="card-fields">
+              <div class="field"><label for="ccName">Name on Card</label><input type="text" id="ccName" autocomplete="cc-name"></div>
+              <div class="field"><label for="ccNumber">Card Number</label><input type="text" id="ccNumber" placeholder="•••• •••• •••• ••••" autocomplete="cc-number" inputmode="numeric"></div>
+              <div class="field-row">
+                <div class="field"><label for="ccExpiry">Expiry</label><input type="text" id="ccExpiry" placeholder="MM/YY" autocomplete="cc-exp"></div>
+                <div class="field"><label for="ccCvc">CVC</label><input type="text" id="ccCvc" placeholder="•••" autocomplete="cc-csc" inputmode="numeric"></div>
+              </div>
+            </div>
+            <div class="card-note">This is a demo store — card payments are simulated and never stored or charged. We'll follow up on WhatsApp to confirm your order.</div>
+          </div>
+
+          <div class="checkout-error" id="checkoutError"></div>
+        </div>
+
+        <div class="order-summary">
+          <h3>Order Summary</h3>
+          <div class="cart-drawer-list" id="summaryItems" style="max-height:none;"></div>
+          <div class="summary-row" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);"><span>Subtotal</span><span id="summarySubtotal">$0.00</span></div>
+          <div class="summary-row"><span>Shipping</span><span id="summaryShipping">Free</span></div>
+          <div class="summary-row total"><span>Total</span><span id="summaryTotal">$0.00</span></div>
+          <button class="checkout-btn" id="placeOrderBtn" type="button">Place Order</button>
+        </div>
+      </div>
+
+      <!-- ================= CONFIRMATION ================= -->
+      <div class="confirm-panel" id="confirmPanel" style="display:none;">
+        <div class="confirm-check">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>
+        </div>
+        <h2>Order Received!</h2>
+        <p>Thanks for shopping with ZOEZONE. Here's your confirmation number:</p>
+        <div class="confirm-code-box">
+          <span id="confirmCode">ZZ-0000</span>
+          <button type="button" id="copyConfirmCodeBtn">Copy</button>
+        </div>
+        <div class="confirm-actions">
+          <a class="btn-whatsapp" id="whatsappShareBtn" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.3-1.39a9.9 9.9 0 0 0 4.74 1.2h.01c5.46 0 9.9-4.45 9.9-9.9 0-2.65-1.03-5.14-2.9-7.01A9.87 9.87 0 0 0 12.04 2zm0 18.06h-.01c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.84-3.04-.2-.31a8.03 8.03 0 0 1-1.24-4.29c0-4.46 3.63-8.09 8.1-8.09 2.16 0 4.19.85 5.72 2.38a8.03 8.03 0 0 1 2.37 5.72c0 4.46-3.63 8.14-7.96 8.14zm4.44-6.07c-.24-.12-1.43-.71-1.65-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.53.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.42-.55-.42-.14-.01-.3-.01-.46-.01-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.13 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28z"/></svg>
+            Message Us On WhatsApp
+          </a>
+          <a href="index.html" class="btn-outline" style="text-decoration:none;padding:14px 0;">Continue Shopping</a>
+        </div>
+        <div class="confirm-recap" id="confirmRecap"></div>
+        <div class="confirm-note">
+          Didn't get a chance to send that message? No worries — we'll reach out to you on WhatsApp to confirm your order and share an ETA.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap foot-grid">
+      <div>
+        <div class="foot-logo">
+          <img class="logo-img footer" src="assets/logo-white.png" alt="ZOEZONE">
+        </div>
+        <p class="about">High-end, classy streetwear rooted in authentic Haitian heritage — bold, punk-funk, never basic.</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="new-arrivals.html">New Arrivals</a></li><li><a href="the-new-era.html">The New Era</a></li><li><a href="tops.html">Tops</a></li><li><a href="bottoms.html">Bottoms</a></li><li><a href="outerwear.html">Outerwear</a></li><li><a href="sale.html">Sale</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <ul>
+          <li><a href="account.html">Track Order</a></li><li><a href="shipping-returns.html">Shipping &amp; Returns</a></li><li><a href="size-guide.html">Size Guide</a></li><li><a href="contact.html">Contact Us</a></li><li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">Our Story</a></li><li><a href="about.html#made-in-haiti">Made In Haiti</a></li><li><a href="careers.html">Careers</a></li><li><a href="terms-privacy.html">Terms &amp; Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>&copy; 2026 ZOEZONE. All rights reserved.</span>
+      <span class="made-in">MADE IN HAITI</span>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="js/shop.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/checkout.js" defer></script>
+</body>
+</html>
