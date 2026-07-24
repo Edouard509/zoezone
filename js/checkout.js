@@ -134,6 +134,17 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
+  initGoogleSignIn('googleSignInBtnCheckout', function (data) {
+    loadMe().then(function (me) {
+      if (!me) return;
+      proceedToCheckout(me);
+      ZZShop.showReferralPopup(me.referralCode);
+    });
+  }, function () {
+    var field = document.getElementById('coSuReferral');
+    return field ? field.value.trim() : '';
+  });
+
   loadMe().then(function (me) {
     if (me) { proceedToCheckout(me); } else { showAuthGate(); }
   });

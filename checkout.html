@@ -98,6 +98,12 @@
       <div class="auth-wrap" id="checkoutAuthWrap" style="display:none;">
         <h1>Sign In To Check Out</h1>
         <p style="text-align:center;color:#888;font-size:13px;margin:-18px 0 30px;">Create an account or sign in so your order is saved to your profile and you can track it anytime.</p>
+
+        <div id="googleSignInBtnCheckout" style="display:flex;justify-content:center;margin-bottom:18px;"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;color:#999;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;">
+          <div style="flex:1;height:1px;background:var(--line);"></div>or<div style="flex:1;height:1px;background:var(--line);"></div>
+        </div>
+
         <div class="auth-tabs">
           <button class="auth-tab active" type="button" data-tab="signin">Sign In</button>
           <button class="auth-tab" type="button" data-tab="signup">Create Account</button>
@@ -307,6 +313,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <script src="js/shop.js" defer></script>
   <script src="js/main.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" defer></script>
+  <script src="js/google-auth.js" defer></script>
   <script src="js/checkout.js" defer></script>
 </body>
 </html>

@@ -17,6 +17,9 @@ export default async (req) => {
   if (!rows.length) return json({ error: 'Invalid email or password.' }, { status: 401 });
 
   const customer = rows[0];
+  if (!customer.password_hash) {
+    return json({ error: 'This account uses Google Sign-In. Please continue with Google instead.' }, { status: 401 });
+  }
   const valid = await verifyPassword(password, customer.password_hash);
   if (!valid) return json({ error: 'Invalid email or password.' }, { status: 401 });
 
