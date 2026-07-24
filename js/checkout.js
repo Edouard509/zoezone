@@ -1,12 +1,9 @@
 // ZOEZONE — checkout: shipping/location form, payment method selection, order placement
-// NOTE: these are placeholders — replace with your real business info before launch.
-var BUSINESS_WHATSAPP_NUMBER = '18095551234'; // country code + number, digits only, no + or spaces
+var BUSINESS_WHATSAPP_NUMBER = '50937893926'; // country code + number, digits only, no + or spaces
 var PAY_INFO = {
-  moncash: { label: 'MonCash', number: '+509 1234-5678', qr: true },
-  natcash: { label: 'NatCash', number: '+509 8765-4321', qr: true },
-  paypal: { label: 'PayPal', number: 'paypal.me/zoezoneshop', qr: false },
-  zelle: { label: 'Zelle', number: 'payments@zoezone.com', qr: false },
-  cashapp: { label: 'Cash App', number: '$ZoeZoneShop', qr: false }
+  moncash: { label: 'MonCash', number: '+509 3789 3926', qr: true },
+  paypal: { label: 'PayPal', number: 'paypal.me/LakouLakayLLC', qr: false },
+  zelle: { label: 'Zelle', number: 'claudyedouard6@gmail.com', qr: false }
 };
 
 document.addEventListener('DOMContentLoaded', function () {
