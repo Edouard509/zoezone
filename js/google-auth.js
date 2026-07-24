@@ -1,6 +1,6 @@
 // ZOEZONE — Google Sign-In wiring, shared by account.html and checkout.html.
 // Set this once you have a real Client ID from Google Cloud Console — until then, the button silently doesn't render.
-var GOOGLE_CLIENT_ID = 'REPLACE_WITH_REAL_GOOGLE_CLIENT_ID';
+var GOOGLE_CLIENT_ID = '341743153645-e2qkmelq3t0h2j11h1pp5f9i04vjkpl0.apps.googleusercontent.com';
 
 function initGoogleSignIn(buttonElId, onSuccess, getReferralCode) {
   if (GOOGLE_CLIENT_ID.indexOf('REPLACE_WITH') === 0) return;
