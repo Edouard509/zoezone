@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { db } from './utils/db.mjs';
 import { json } from './utils/auth.mjs';
 import { sendEmail, passwordResetHTML, googleOnlyAccountHTML } from './utils/email.mjs';
+import { checkRateLimit } from './utils/rate-limit.mjs';
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -15,6 +16,12 @@ export default async (req) => {
   if (!email || !email.includes('@')) {
     return json({ error: 'A valid email is required.' }, { status: 400 });
   }
+
+  // Keyed by the target email, not the caller — this is what stops someone from
+  // spamming a stranger's inbox with reset links. Rate-limited requests still get
+  // the same {ok:true} as a real one, matching the no-enumeration design below.
+  const allowed = await checkRateLimit(`forgot-password:${email}`, { maxAttempts: 3, windowMinutes: 15 });
+  if (!allowed) return json({ ok: true });
 
   const database = db();
   const rows = await database.sql`SELECT * FROM customers WHERE email = ${email} LIMIT 1`;

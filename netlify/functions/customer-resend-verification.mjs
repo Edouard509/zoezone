@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { db } from './utils/db.mjs';
 import { json, getCustomerFromRequest } from './utils/auth.mjs';
 import { sendEmail, verifyEmailHTML } from './utils/email.mjs';
+import { checkRateLimit } from './utils/rate-limit.mjs';
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -19,6 +20,11 @@ export default async (req) => {
 
   const customer = rows[0];
   if (customer.email_verified) return json({ ok: true, alreadyVerified: true });
+
+  const allowed = await checkRateLimit(`resend-verification:${customer.id}`, { maxAttempts: 3, windowMinutes: 15 });
+  if (!allowed) {
+    return json({ error: 'Please wait a bit before requesting another verification email.' }, { status: 429 });
+  }
 
   const rawToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = hashToken(rawToken);

@@ -1,5 +1,6 @@
 import { db } from './utils/db.mjs';
 import { json } from './utils/auth.mjs';
+import { checkRateLimit, clientIp } from './utils/rate-limit.mjs';
 
 export default async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
@@ -7,6 +8,13 @@ export default async (req) => {
   const body = await req.json().catch(() => null);
   const code = body?.code?.trim().toUpperCase();
   if (!code) return json({ valid: false, error: 'Please enter a promo code.' }, { status: 400 });
+
+  // Unauthenticated and guessable-code-shaped, so this is throttled per IP rather
+  // than per account — otherwise it's a free oracle for brute-forcing promo codes.
+  const allowed = await checkRateLimit(`promo-validate:${clientIp(req)}`, { maxAttempts: 20, windowMinutes: 15 });
+  if (!allowed) {
+    return json({ valid: false, error: 'Too many attempts — please try again later.' }, { status: 429 });
+  }
 
   const database = db();
   const rows = await database.sql`SELECT * FROM promo_codes WHERE code = ${code} LIMIT 1`;
