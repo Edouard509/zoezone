@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var name = document.getElementById('coSuName').value.trim();
     var email = document.getElementById('coSuEmail').value.trim();
     var pw = document.getElementById('coSuPassword').value;
-    var referralCode = document.getElementById('coSuReferral').value.trim();
+    var referralCode = document.getElementById('coSharedReferralField').value.trim();
     var errorEl = document.getElementById('coSuError');
     var submitBtn = e.target.querySelector('.auth-submit');
     if (!name || !email.includes('@') || pw.length < 6) {
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ZZShop.showReferralPopup(me.referralCode);
     });
   }, function () {
-    var field = document.getElementById('coSuReferral');
+    var field = document.getElementById('coSharedReferralField');
     return field ? field.value.trim() : '';
   });
 

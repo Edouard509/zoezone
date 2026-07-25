@@ -79,6 +79,12 @@
   <div class="auth-wrap" id="authWrap">
     <h1>Welcome to ZOEZONE</h1>
 
+    <div class="auth-field" style="max-width:320px;margin:0 auto 18px;">
+      <label for="sharedReferralField">Referral Code (optional)</label>
+      <input type="text" id="sharedReferralField" placeholder="ZOE-XXXXXX">
+      <div style="font-size:11px;color:#888;margin-top:5px;">Have a friend's code? Enter it here before signing in or creating an account — works with Google too.</div>
+    </div>
+
     <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:18px;"></div>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;color:#999;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;">
       <div style="flex:1;height:1px;background:var(--line);"></div>or<div style="flex:1;height:1px;background:var(--line);"></div>
@@ -114,10 +120,6 @@
       <div class="auth-field">
         <label for="suPassword">Password</label>
         <input type="password" id="suPassword" required minlength="6">
-      </div>
-      <div class="auth-field">
-        <label for="suReferral">Referral Code (optional)</label>
-        <input type="text" id="suReferral" placeholder="ZOE-XXXXXX">
       </div>
       <div class="auth-error" id="suError">Please fill out every field (password must be at least 6 characters).</div>
       <button class="auth-submit" type="submit">Create Account</button>
@@ -392,7 +394,7 @@
         var name = document.getElementById('suName').value.trim();
         var email = document.getElementById('suEmail').value.trim();
         var pw = document.getElementById('suPassword').value;
-        var referralCode = document.getElementById('suReferral').value.trim();
+        var referralCode = document.getElementById('sharedReferralField').value.trim();
         var errorEl = document.getElementById('suError');
         var submitBtn = e.target.querySelector('.auth-submit');
         if (!name || !email.includes('@') || pw.length < 6) {
@@ -518,7 +520,7 @@
           ZZShop.showReferralPopup(me.referralCode);
         });
       }, function () {
-        var field = document.getElementById('suReferral');
+        var field = document.getElementById('sharedReferralField');
         return field ? field.value.trim() : '';
       });
 
