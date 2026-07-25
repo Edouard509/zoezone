@@ -73,3 +73,17 @@ export function requireAdmin(req) {
   }
   return { ok: true, admin };
 }
+
+// ---------- login brute-force lockout ----------
+// Shared by customer-login.mjs and admin-login.mjs: after LOCKOUT_THRESHOLD
+// wrong passwords in a row, the account is locked for LOCKOUT_MINUTES.
+export const LOCKOUT_THRESHOLD = 5;
+export const LOCKOUT_MINUTES = 15;
+
+export function lockoutResponse(lockoutUntil) {
+  const minutesLeft = Math.max(1, Math.ceil((new Date(lockoutUntil) - Date.now()) / 60000));
+  return json(
+    { error: `Too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.` },
+    { status: 429 }
+  );
+}
