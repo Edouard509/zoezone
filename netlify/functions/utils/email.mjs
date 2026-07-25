@@ -54,8 +54,20 @@ function emailShell(bodyHTML, footerText) {
   `;
 }
 
-export function welcomeEmailHTML({ firstName }) {
+export function welcomeEmailHTML({ firstName, verifyUrl }) {
   const name = escapeHTML(firstName) || 'there';
+  const verifyBlock = verifyUrl
+    ? `
+      <div style="background:#f5f3ee;border-radius:6px;padding:18px 20px;margin-bottom:24px;">
+        <p style="font-size:13px;line-height:1.6;margin:0 0 14px;color:#444;">
+          One last step — verify your email so we know your orders (and referral rewards) reach the right inbox.
+        </p>
+        <a href="${verifyUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:12px 24px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+          Verify Email
+        </a>
+      </div>
+    `
+    : '';
   return emailShell(
     `
       <h1 style="font-size:20px;margin:0 0 16px;">Welcome, ${name}!</h1>
@@ -63,6 +75,7 @@ export function welcomeEmailHTML({ firstName }) {
         Thanks for creating an account with ZOEZONE — high-end, classy streetwear rooted in
         authentic Haitian heritage. You're in.
       </p>
+      ${verifyBlock}
       <p style="font-size:14px;line-height:1.6;margin:0 0 16px;">
         Browse the latest drop, track your orders, and check out faster next time — it's all
         right there in your account.
@@ -75,6 +88,22 @@ export function welcomeEmailHTML({ firstName }) {
       </a>
     `,
     'You\'re receiving this because you created an account at zoezone.co.'
+  );
+}
+
+export function verifyEmailHTML({ firstName, verifyUrl }) {
+  const name = escapeHTML(firstName) || 'there';
+  return emailShell(
+    `
+      <h1 style="font-size:20px;margin:0 0 16px;">Verify Your Email</h1>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 24px;">
+        Hi ${name}, click below to verify your ZOEZONE account email — this link expires in 24 hours.
+      </p>
+      <a href="${verifyUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+        Verify Email
+      </a>
+    `,
+    "You're receiving this because you have an account at zoezone.co."
   );
 }
 

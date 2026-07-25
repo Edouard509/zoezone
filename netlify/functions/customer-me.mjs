@@ -44,6 +44,7 @@ export default async (req) => {
     address: c.address,
     referralCode: c.referral_code,
     pendingDiscountPercent: Number(c.pending_discount_percent),
+    emailVerified: c.email_verified,
     memberSince: c.created_at,
     avatarUrl: c.avatar_url,
     orders,

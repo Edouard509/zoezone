@@ -142,6 +142,10 @@
   </div>
 
   <!-- ---------- SIGNED-IN: DASHBOARD ---------- -->
+  <div class="wrap" id="verifyBanner" style="background:var(--cream);border:1px solid var(--line);border-radius:6px;padding:14px 18px;margin:0 auto 20px;max-width:1100px;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;display:none;">
+    <span style="font-size:13px;color:#555;">Please verify your email so order updates and referral rewards reach the right inbox.</span>
+    <button type="button" id="resendVerifyBtn" style="background:var(--black);color:#fff;border:none;padding:9px 16px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-radius:4px;cursor:pointer;white-space:nowrap;">Resend Email</button>
+  </div>
   <div class="wrap dash-grid" id="dashWrap" style="display:none;">
     <div class="dash-nav">
       <button class="active" type="button" data-panel="details">Account Details</button>
@@ -323,6 +327,7 @@
           document.getElementById('memberSinceText').textContent = 'Member since ' + since;
         }
         document.getElementById('discountStatusBox').style.display = me.pendingDiscountPercent > 0 ? 'block' : 'none';
+        document.getElementById('verifyBanner').style.display = me.emailVerified ? 'none' : 'flex';
 
         renderAvatar(me.avatarUrl, me.firstName);
       }
@@ -339,6 +344,7 @@
       function showAuth() {
         authWrap.style.display = 'block';
         dashWrap.style.display = 'none';
+        document.getElementById('verifyBanner').style.display = 'none';
       }
 
       function loadMe() {
@@ -563,6 +569,28 @@
         var code = document.getElementById('referralCodeText').textContent;
         navigator.clipboard.writeText(code);
         ZZShop.showToast('Referral code copied');
+      });
+
+      document.getElementById('resendVerifyBtn').addEventListener('click', function () {
+        var btn = document.getElementById('resendVerifyBtn');
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        fetch('/api/auth/customer/resend-verification', { method: 'POST', credentials: 'same-origin' })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            btn.disabled = false;
+            btn.textContent = 'Resend Email';
+            if (!res.ok) {
+              ZZShop.showToast(res.data.error || "Couldn't send — try again.");
+              return;
+            }
+            ZZShop.showToast(res.data.alreadyVerified ? 'Already verified' : 'Verification email sent');
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Resend Email';
+            ZZShop.showToast("Couldn't reach the server — try again.");
+          });
       });
 
       document.getElementById('signOutBtn').addEventListener('click', function () {

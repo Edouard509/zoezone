@@ -1,9 +1,14 @@
+import crypto from 'node:crypto';
 import { db } from './utils/db.mjs';
 import { json, hashPassword, signToken, cookieHeader } from './utils/auth.mjs';
 import { sendEmail, welcomeEmailHTML } from './utils/email.mjs';
 
 function generateReferralCode() {
   return 'ZOE-' + Math.random().toString(36).toUpperCase().slice(2, 8);
+}
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 export default async (req) => {
@@ -36,21 +41,29 @@ export default async (req) => {
   const passwordHash = await hashPassword(password);
   const myReferralCode = generateReferralCode();
 
+  // Both this account's own referral discount and the referrer's reward are
+  // granted on email verification, not here — otherwise anyone could farm
+  // referral rewards for themselves using disposable, unverified emails.
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = hashToken(rawToken);
+  const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
   const rows = await database.sql`
-    INSERT INTO customers (email, password_hash, first_name, last_name, referral_code, referred_by, pending_discount_percent)
-    VALUES (${email}, ${passwordHash}, ${firstName}, ${lastName || null}, ${myReferralCode}, ${referrer ? referrer.id : null}, ${referrer ? 10 : 0})
-    RETURNING id, email, first_name, last_name, referral_code, pending_discount_percent
+    INSERT INTO customers
+      (email, password_hash, first_name, last_name, referral_code, referred_by,
+       email_verify_token_hash, email_verify_expires)
+    VALUES
+      (${email}, ${passwordHash}, ${firstName}, ${lastName || null}, ${myReferralCode}, ${referrer ? referrer.id : null},
+       ${tokenHash}, ${verifyExpires.toISOString()})
+    RETURNING id, email, first_name, last_name, referral_code, pending_discount_percent, email_verified
   `;
   const customer = rows[0];
 
-  if (referrer) {
-    await database.sql`UPDATE customers SET pending_discount_percent = 10 WHERE id = ${referrer.id}`;
-  }
-
+  const verifyUrl = `https://zoezone.co/verify-email.html?token=${rawToken}&email=${encodeURIComponent(customer.email)}`;
   await sendEmail({
     to: customer.email,
-    subject: 'Welcome to ZOEZONE',
-    html: welcomeEmailHTML({ firstName: customer.first_name }),
+    subject: 'Welcome to ZOEZONE — verify your email',
+    html: welcomeEmailHTML({ firstName: customer.first_name, verifyUrl }),
   });
 
   const token = signToken({ type: 'customer', sub: customer.id, email: customer.email });
@@ -63,6 +76,7 @@ export default async (req) => {
       lastName: customer.last_name,
       referralCode: customer.referral_code,
       pendingDiscountPercent: Number(customer.pending_discount_percent),
+      emailVerified: customer.email_verified,
     },
     { status: 201, headers: { 'Set-Cookie': cookieHeader('zz_customer_session', token) } }
   );

@@ -31,6 +31,37 @@ export function db() {
   return { sql: sqlTag };
 }
 
+// Runs `fn({ sql })` inside a single BEGIN/COMMIT transaction on one checked-out
+// client, so multiple statements (e.g. a guarded stock decrement + the order
+// insert) either all land together or all roll back. `sql` here mirrors the
+// tagged-template API above but always runs on the same client/transaction.
+export async function withTransaction(fn) {
+  const client = await getPool().connect();
+  function txSql(strings, ...values) {
+    let text = '';
+    const params = [];
+    strings.forEach((chunk, i) => {
+      text += chunk;
+      if (i < values.length) {
+        params.push(values[i]);
+        text += '$' + params.length;
+      }
+    });
+    return client.query(text, params).then((res) => res.rows);
+  }
+  try {
+    await client.query('BEGIN');
+    const result = await fn({ sql: txSql });
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export const COLOR_HEX = { black: '#1a1a1a', gray: '#8d8f92', cream: '#ece7de', denim: '#a9bccf', gold: '#c9a860' };
 export function swatchColorsFor(colors) {
   return (colors || []).map((c) => COLOR_HEX[c] || '#cccccc');

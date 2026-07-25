@@ -1,4 +1,4 @@
-import { db, serializeOrder } from './utils/db.mjs';
+import { db, withTransaction, serializeOrder } from './utils/db.mjs';
 import { json, getCustomerFromRequest } from './utils/auth.mjs';
 import { sendEmail, orderConfirmationHTML } from './utils/email.mjs';
 
@@ -6,6 +6,13 @@ function generateOrderId() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-4);
   const rand = Math.random().toString(36).toUpperCase().slice(2, 6);
   return `ZZ-${stamp}${rand}`;
+}
+
+class OrderError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+  }
 }
 
 async function createOrder(req) {
@@ -26,81 +33,98 @@ async function createOrder(req) {
   if (!location || location.lat == null || location.lng == null) errors.push('a pinned location on the map');
   if (!payment || !payment.method) errors.push('payment method');
   if (!Array.isArray(items) || !items.length) errors.push('items');
+  if (Array.isArray(items) && items.some((it) => !Number.isInteger(it.qty) || it.qty < 1)) {
+    errors.push('a valid quantity for every item');
+  }
   if (errors.length) {
     return json({ error: 'Missing: ' + errors.join(', ') }, { status: 400 });
   }
 
-  const database = db();
-
-  // ---------- stock check (best-effort; not a hard transaction lock) ----------
-  for (const item of items) {
-    if (!item.id) continue;
-    const rows = await database.sql`SELECT name, stock_quantity FROM products WHERE id = ${item.id} LIMIT 1`;
-    if (!rows.length) continue;
-    if (rows[0].stock_quantity < item.qty) {
-      return json({ error: `Sorry, "${rows[0].name}" only has ${rows[0].stock_quantity} left in stock.` }, { status: 409 });
-    }
-  }
-
+  // PayPal charges a transaction fee — flat $5, decided server-side (never trust a client-submitted fee).
+  const paymentFeeAmount = payment.method === 'paypal' ? 5 : 0;
   const orderId = generateOrderId();
 
-  // ---------- discount: a promo code (if given) takes precedence over the referral discount ----------
+  // Stock decrement, promo/referral consumption, and the order insert all happen
+  // in one transaction: a guarded UPDATE (only succeeds if enough stock remains)
+  // means two simultaneous orders for the last unit can't both go through, and if
+  // any item is short, the whole order — including any promo/referral use — rolls
+  // back together instead of partially committing.
   let referralDiscountAmount = 0;
   let promoDiscountAmount = 0;
   let appliedPromoCode = null;
+  let discountedSubtotal = 0;
+  let finalTotal = 0;
 
-  if (promoCode) {
-    const promoRows = await database.sql`SELECT * FROM promo_codes WHERE code = ${promoCode.trim().toUpperCase()} LIMIT 1`;
-    if (!promoRows.length) return json({ error: "That promo code doesn't exist." }, { status: 400 });
-    const promo = promoRows[0];
-    if (!promo.active) return json({ error: 'That promo code is no longer active.' }, { status: 400 });
-    if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
-      return json({ error: 'That promo code has expired.' }, { status: 400 });
-    }
-    if (promo.max_uses !== null && promo.uses_count >= promo.max_uses) {
-      return json({ error: 'That promo code has reached its usage limit.' }, { status: 400 });
-    }
-    promoDiscountAmount = promo.discount_type === 'percent'
-      ? Math.round(subtotal * (Number(promo.discount_value) / 100) * 100) / 100
-      : Math.min(Number(promo.discount_value), subtotal);
-    appliedPromoCode = promo.code;
-  } else {
-    const rows = await database.sql`SELECT pending_discount_percent FROM customers WHERE id = ${customer.sub} LIMIT 1`;
-    if (rows.length && rows[0].pending_discount_percent > 0) {
-      referralDiscountAmount = Math.round(subtotal * (Number(rows[0].pending_discount_percent) / 100) * 100) / 100;
-    }
-  }
+  try {
+    await withTransaction(async (tx) => {
+      if (promoCode) {
+        const promoRows = await tx.sql`SELECT * FROM promo_codes WHERE code = ${promoCode.trim().toUpperCase()} LIMIT 1`;
+        if (!promoRows.length) throw new OrderError("That promo code doesn't exist.", 400);
+        const promo = promoRows[0];
+        if (!promo.active) throw new OrderError('That promo code is no longer active.', 400);
+        if (promo.expires_at && new Date(promo.expires_at) < new Date()) {
+          throw new OrderError('That promo code has expired.', 400);
+        }
+        promoDiscountAmount = promo.discount_type === 'percent'
+          ? Math.round(subtotal * (Number(promo.discount_value) / 100) * 100) / 100
+          : Math.min(Number(promo.discount_value), subtotal);
+        appliedPromoCode = promo.code;
 
-  // PayPal charges a transaction fee — flat $5, decided server-side (never trust a client-submitted fee).
-  const paymentFeeAmount = payment.method === 'paypal' ? 5 : 0;
+        const consumed = await tx.sql`
+          UPDATE promo_codes SET uses_count = uses_count + 1
+          WHERE code = ${promo.code} AND (max_uses IS NULL OR uses_count < max_uses)
+          RETURNING code
+        `;
+        if (!consumed.length) throw new OrderError('That promo code has reached its usage limit.', 400);
+      } else {
+        const rows = await tx.sql`SELECT pending_discount_percent FROM customers WHERE id = ${customer.sub} LIMIT 1`;
+        if (rows.length && rows[0].pending_discount_percent > 0) {
+          referralDiscountAmount = Math.round(subtotal * (Number(rows[0].pending_discount_percent) / 100) * 100) / 100;
+        }
+      }
 
-  const discountedSubtotal = Math.round((subtotal - referralDiscountAmount - promoDiscountAmount) * 100) / 100;
-  const finalTotal = Math.round((discountedSubtotal + shipping + paymentFeeAmount) * 100) / 100;
+      discountedSubtotal = Math.round((subtotal - referralDiscountAmount - promoDiscountAmount) * 100) / 100;
+      finalTotal = Math.round((discountedSubtotal + shipping + paymentFeeAmount) * 100) / 100;
 
-  await database.sql`
-    INSERT INTO orders
-      (id, customer_id, first_name, last_name, email, whatsapp, address, notes, lat, lng, payment_method,
-       subtotal, shipping, referral_discount_amount, promo_code, promo_discount_amount, payment_fee_amount, total, status)
-    VALUES
-      (${orderId}, ${customer.sub}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
-       ${location.lat}, ${location.lng}, ${payment.method},
-       ${subtotal}, ${shipping}, ${referralDiscountAmount}, ${appliedPromoCode}, ${promoDiscountAmount}, ${paymentFeeAmount}, ${finalTotal}, 'pending')
-  `;
+      for (const item of items) {
+        if (!item.id) continue;
+        const decremented = await tx.sql`
+          UPDATE products SET stock_quantity = stock_quantity - ${item.qty}
+          WHERE id = ${item.id} AND stock_quantity >= ${item.qty}
+          RETURNING stock_quantity
+        `;
+        if (!decremented.length) {
+          const current = await tx.sql`SELECT name, stock_quantity FROM products WHERE id = ${item.id} LIMIT 1`;
+          const name = current.length ? current[0].name : item.name;
+          const available = current.length ? current[0].stock_quantity : 0;
+          throw new OrderError(`Sorry, "${name}" only has ${available} left in stock.`, 409);
+        }
+      }
 
-  for (const item of items) {
-    await database.sql`
-      INSERT INTO order_items (order_id, product_id, name, price, qty, size, color)
-      VALUES (${orderId}, ${item.id || null}, ${item.name}, ${item.price}, ${item.qty}, ${item.size || null}, ${item.color || null})
-    `;
-    if (item.id) {
-      await database.sql`UPDATE products SET stock_quantity = GREATEST(stock_quantity - ${item.qty}, 0) WHERE id = ${item.id}`;
-    }
-  }
+      await tx.sql`
+        INSERT INTO orders
+          (id, customer_id, first_name, last_name, email, whatsapp, address, notes, lat, lng, payment_method,
+           subtotal, shipping, referral_discount_amount, promo_code, promo_discount_amount, payment_fee_amount, total, status)
+        VALUES
+          (${orderId}, ${customer.sub}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
+           ${location.lat}, ${location.lng}, ${payment.method},
+           ${subtotal}, ${shipping}, ${referralDiscountAmount}, ${appliedPromoCode}, ${promoDiscountAmount}, ${paymentFeeAmount}, ${finalTotal}, 'pending')
+      `;
 
-  if (appliedPromoCode) {
-    await database.sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ${appliedPromoCode}`;
-  } else if (referralDiscountAmount > 0) {
-    await database.sql`UPDATE customers SET pending_discount_percent = 0 WHERE id = ${customer.sub}`;
+      for (const item of items) {
+        await tx.sql`
+          INSERT INTO order_items (order_id, product_id, name, price, qty, size, color)
+          VALUES (${orderId}, ${item.id || null}, ${item.name}, ${item.price}, ${item.qty}, ${item.size || null}, ${item.color || null})
+        `;
+      }
+
+      if (referralDiscountAmount > 0) {
+        await tx.sql`UPDATE customers SET pending_discount_percent = 0 WHERE id = ${customer.sub}`;
+      }
+    });
+  } catch (err) {
+    if (err instanceof OrderError) return json({ error: err.message }, { status: err.status });
+    throw err;
   }
 
   const orderForEmail = {

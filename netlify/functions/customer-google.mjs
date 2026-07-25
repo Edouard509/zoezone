@@ -40,10 +40,20 @@ export default async (req) => {
 
   if (!customer) {
     // Existing password account with the same email — link Google to it.
+    // Google vouching for this email also satisfies our own verification requirement.
     rows = await database.sql`SELECT * FROM customers WHERE email = ${email} LIMIT 1`;
     if (rows.length) {
-      await database.sql`UPDATE customers SET google_id = ${googleId} WHERE id = ${rows[0].id}`;
-      customer = { ...rows[0], google_id: googleId };
+      const wasUnverified = !rows[0].email_verified;
+      await database.sql`UPDATE customers SET google_id = ${googleId}, email_verified = true WHERE id = ${rows[0].id}`;
+      customer = { ...rows[0], google_id: googleId, email_verified: true };
+
+      // A referral that was waiting on verification (from the original password
+      // signup) unlocks now, since Google just proved the email is real.
+      if (wasUnverified && rows[0].referred_by && rows[0].pending_discount_percent === 0) {
+        await database.sql`UPDATE customers SET pending_discount_percent = 10 WHERE id = ${customer.id}`;
+        await database.sql`UPDATE customers SET pending_discount_percent = 10 WHERE id = ${rows[0].referred_by}`;
+        customer.pending_discount_percent = 10;
+      }
     }
   }
 
@@ -60,9 +70,11 @@ export default async (req) => {
     const lastName = payload.family_name || (payload.name || '').split(' ').slice(1).join(' ') || null;
     const myReferralCode = generateReferralCode();
 
+    // Google already vouches for the email being real, so this account is
+    // verified immediately and the referral reward doesn't need to wait.
     const inserted = await database.sql`
-      INSERT INTO customers (email, password_hash, first_name, last_name, google_id, referral_code, referred_by, pending_discount_percent)
-      VALUES (${email}, NULL, ${firstName}, ${lastName}, ${googleId}, ${myReferralCode}, ${referrer ? referrer.id : null}, ${referrer ? 10 : 0})
+      INSERT INTO customers (email, password_hash, first_name, last_name, google_id, referral_code, referred_by, pending_discount_percent, email_verified)
+      VALUES (${email}, NULL, ${firstName}, ${lastName}, ${googleId}, ${myReferralCode}, ${referrer ? referrer.id : null}, ${referrer ? 10 : 0}, true)
       RETURNING *
     `;
     customer = inserted[0];
@@ -88,6 +100,7 @@ export default async (req) => {
       lastName: customer.last_name,
       referralCode: customer.referral_code,
       pendingDiscountPercent: Number(customer.pending_discount_percent || 0),
+      emailVerified: customer.email_verified,
       isNewAccount,
     },
     { status: isNewAccount ? 201 : 200, headers: { 'Set-Cookie': cookieHeader('zz_customer_session', token) } }
