@@ -12,12 +12,17 @@
     var wantNew = body.dataset.filterNew === 'true';
     var wantSale = body.dataset.filterSale === 'true';
 
+    // Only Tops has launched so far — New Arrivals and The New Era show Tops items only for now,
+    // rather than mixing in blurred "Coming Soon" cards from other categories.
+    var topsOnly = wantNew || tag === 'new-era';
+
     ZZShop.ready.then(function (products) {
       var filtered = products.filter(function (p) {
         if (category && p.categories.indexOf(category) === -1) return false;
         if (tag && p.tags.indexOf(tag) === -1) return false;
         if (wantNew && !p.isNew) return false;
         if (wantSale && !p.isSale) return false;
+        if (topsOnly && p.categories.indexOf('tops') === -1) return false;
         return true;
       });
 
