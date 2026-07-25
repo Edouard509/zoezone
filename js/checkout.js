@@ -535,13 +535,16 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('confirmCode').textContent = order.id;
 
       var mapsLink = order.location ? ('https://www.google.com/maps?q=' + order.location.lat + ',' + order.location.lng) : '';
-      var itemsList = order.items.map(function (it) {
+      function formatItemLine(it, esc) {
+        var name = esc ? ZZShop.escapeHTML(it.name) : it.name;
         var bits = [];
-        if (it.color) bits.push(it.color);
-        if (it.size) bits.push(it.size);
+        if (it.color) bits.push(esc ? ZZShop.escapeHTML(it.color) : it.color);
+        if (it.size) bits.push(esc ? ZZShop.escapeHTML(it.size) : it.size);
         var variant = bits.length ? ' (' + bits.join('/') + ')' : '';
-        return it.qty + 'x ' + it.name + variant;
-      }).join(', ');
+        return it.qty + 'x ' + name + variant;
+      }
+      var itemsList = order.items.map(function (it) { return formatItemLine(it, false); }).join(', ');
+      var itemsListHTML = order.items.map(function (it) { return formatItemLine(it, true); }).join(', ');
       var methodLabel = PAY_INFO[order.payment.method] ? PAY_INFO[order.payment.method].label : order.payment.method;
 
       var message =
@@ -567,9 +570,9 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       document.getElementById('confirmRecap').innerHTML =
-        '<div class="confirm-recap-row"><span>Name</span><span>' + order.customer.firstName + ' ' + order.customer.lastName + '</span></div>' +
-        '<div class="confirm-recap-row"><span>Payment</span><span>' + methodLabel + '</span></div>' +
-        '<div class="confirm-recap-row"><span>Items</span><span>' + itemsList + '</span></div>' +
+        '<div class="confirm-recap-row"><span>Name</span><span>' + ZZShop.escapeHTML(order.customer.firstName) + ' ' + ZZShop.escapeHTML(order.customer.lastName) + '</span></div>' +
+        '<div class="confirm-recap-row"><span>Payment</span><span>' + ZZShop.escapeHTML(methodLabel) + '</span></div>' +
+        '<div class="confirm-recap-row"><span>Items</span><span>' + itemsListHTML + '</span></div>' +
         '<div class="confirm-recap-row"><span>Total</span><span>$' + order.total.toFixed(2) + '</span></div>';
     }
   }

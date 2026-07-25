@@ -22,7 +22,7 @@ async function createOrder(req) {
   const body = await req.json().catch(() => null);
   if (!body) return json({ error: 'Invalid request body' }, { status: 400 });
 
-  const { firstName, lastName, email, whatsapp, address, notes, location, payment, items, subtotal, shipping, promoCode } = body;
+  const { firstName, lastName, email, whatsapp, address, notes, location, payment, items, promoCode } = body;
 
   const errors = [];
   if (!firstName) errors.push('first name');
@@ -44,19 +44,55 @@ async function createOrder(req) {
   const paymentFeeAmount = payment.method === 'paypal' ? 5 : 0;
   const orderId = generateOrderId();
 
-  // Stock decrement, promo/referral consumption, and the order insert all happen
-  // in one transaction: a guarded UPDATE (only succeeds if enough stock remains)
-  // means two simultaneous orders for the last unit can't both go through, and if
-  // any item is short, the whole order — including any promo/referral use — rolls
-  // back together instead of partially committing.
+  // Everything money-related is recomputed here from the real products table —
+  // subtotal, shipping, item names/prices — rather than trusted from the client.
+  // A client can submit whatever it wants in the request body (a $0.01 subtotal,
+  // a fake item name), but only what's looked up here ever gets stored or charged.
+  // This runs in one transaction alongside the stock decrement and promo/referral
+  // consumption so a guarded UPDATE (only succeeds if enough stock remains) means
+  // two simultaneous orders for the last unit can't both go through, and if any
+  // item is short, the whole order rolls back together instead of partially
+  // committing.
   let referralDiscountAmount = 0;
   let promoDiscountAmount = 0;
   let appliedPromoCode = null;
+  let computedSubtotal = 0;
+  let computedShipping = 0;
   let discountedSubtotal = 0;
   let finalTotal = 0;
 
   try {
     await withTransaction(async (tx) => {
+      const resolvedItems = [];
+      let rawSubtotal = 0;
+
+      for (const item of items) {
+        if (!item.id) throw new OrderError('Every item must reference a valid product.', 400);
+        const decremented = await tx.sql`
+          UPDATE products SET stock_quantity = stock_quantity - ${item.qty}
+          WHERE id = ${item.id} AND stock_quantity >= ${item.qty}
+          RETURNING name, price
+        `;
+        if (!decremented.length) {
+          const current = await tx.sql`SELECT name, stock_quantity FROM products WHERE id = ${item.id} LIMIT 1`;
+          if (!current.length) throw new OrderError('One of the items in your cart is no longer available.', 400);
+          throw new OrderError(`Sorry, "${current[0].name}" only has ${current[0].stock_quantity} left in stock.`, 409);
+        }
+        const price = Number(decremented[0].price);
+        rawSubtotal += price * item.qty;
+        resolvedItems.push({
+          productId: item.id,
+          name: decremented[0].name,
+          price,
+          qty: item.qty,
+          size: item.size ? String(item.size).slice(0, 40) : null,
+          color: item.color ? String(item.color).slice(0, 40) : null,
+        });
+      }
+
+      computedSubtotal = Math.round(rawSubtotal * 100) / 100;
+      computedShipping = computedSubtotal >= 75 ? 0 : 6.95;
+
       if (promoCode) {
         const promoRows = await tx.sql`SELECT * FROM promo_codes WHERE code = ${promoCode.trim().toUpperCase()} LIMIT 1`;
         if (!promoRows.length) throw new OrderError("That promo code doesn't exist.", 400);
@@ -66,8 +102,8 @@ async function createOrder(req) {
           throw new OrderError('That promo code has expired.', 400);
         }
         promoDiscountAmount = promo.discount_type === 'percent'
-          ? Math.round(subtotal * (Number(promo.discount_value) / 100) * 100) / 100
-          : Math.min(Number(promo.discount_value), subtotal);
+          ? Math.round(computedSubtotal * (Number(promo.discount_value) / 100) * 100) / 100
+          : Math.min(Number(promo.discount_value), computedSubtotal);
         appliedPromoCode = promo.code;
 
         const consumed = await tx.sql`
@@ -79,27 +115,12 @@ async function createOrder(req) {
       } else {
         const rows = await tx.sql`SELECT pending_discount_percent FROM customers WHERE id = ${customer.sub} LIMIT 1`;
         if (rows.length && rows[0].pending_discount_percent > 0) {
-          referralDiscountAmount = Math.round(subtotal * (Number(rows[0].pending_discount_percent) / 100) * 100) / 100;
+          referralDiscountAmount = Math.round(computedSubtotal * (Number(rows[0].pending_discount_percent) / 100) * 100) / 100;
         }
       }
 
-      discountedSubtotal = Math.round((subtotal - referralDiscountAmount - promoDiscountAmount) * 100) / 100;
-      finalTotal = Math.round((discountedSubtotal + shipping + paymentFeeAmount) * 100) / 100;
-
-      for (const item of items) {
-        if (!item.id) continue;
-        const decremented = await tx.sql`
-          UPDATE products SET stock_quantity = stock_quantity - ${item.qty}
-          WHERE id = ${item.id} AND stock_quantity >= ${item.qty}
-          RETURNING stock_quantity
-        `;
-        if (!decremented.length) {
-          const current = await tx.sql`SELECT name, stock_quantity FROM products WHERE id = ${item.id} LIMIT 1`;
-          const name = current.length ? current[0].name : item.name;
-          const available = current.length ? current[0].stock_quantity : 0;
-          throw new OrderError(`Sorry, "${name}" only has ${available} left in stock.`, 409);
-        }
-      }
+      discountedSubtotal = Math.round((computedSubtotal - referralDiscountAmount - promoDiscountAmount) * 100) / 100;
+      finalTotal = Math.round((discountedSubtotal + computedShipping + paymentFeeAmount) * 100) / 100;
 
       await tx.sql`
         INSERT INTO orders
@@ -108,13 +129,13 @@ async function createOrder(req) {
         VALUES
           (${orderId}, ${customer.sub}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
            ${location.lat}, ${location.lng}, ${payment.method},
-           ${subtotal}, ${shipping}, ${referralDiscountAmount}, ${appliedPromoCode}, ${promoDiscountAmount}, ${paymentFeeAmount}, ${finalTotal}, 'pending')
+           ${computedSubtotal}, ${computedShipping}, ${referralDiscountAmount}, ${appliedPromoCode}, ${promoDiscountAmount}, ${paymentFeeAmount}, ${finalTotal}, 'pending')
       `;
 
-      for (const item of items) {
+      for (const ri of resolvedItems) {
         await tx.sql`
           INSERT INTO order_items (order_id, product_id, name, price, qty, size, color)
-          VALUES (${orderId}, ${item.id || null}, ${item.name}, ${item.price}, ${item.qty}, ${item.size || null}, ${item.color || null})
+          VALUES (${orderId}, ${ri.productId}, ${ri.name}, ${ri.price}, ${ri.qty}, ${ri.size}, ${ri.color})
         `;
       }
 
@@ -132,7 +153,7 @@ async function createOrder(req) {
     customer: { firstName, lastName, email, whatsapp, address, notes },
     items,
     subtotal: discountedSubtotal,
-    shipping,
+    shipping: computedShipping,
     paymentFeeAmount,
     total: finalTotal,
   };

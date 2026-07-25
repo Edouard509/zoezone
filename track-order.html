@@ -212,7 +212,7 @@
         document.getElementById('resultDate').textContent = 'Placed ' + date;
         document.getElementById('trackSteps').innerHTML = renderSteps(order.status);
         document.getElementById('resultItems').innerHTML = order.items.map(function (it) {
-          return it.qty + 'x ' + it.name;
+          return it.qty + 'x ' + ZZShop.escapeHTML(it.name);
         }).join(', ');
         document.getElementById('resultAddress').textContent = order.customer.address || '—';
 
