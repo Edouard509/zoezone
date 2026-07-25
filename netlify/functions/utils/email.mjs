@@ -78,6 +78,25 @@ export function welcomeEmailHTML({ firstName }) {
   );
 }
 
+export function newsletterWelcomeHTML() {
+  return emailShell(
+    `
+      <h1 style="font-size:20px;margin:0 0 16px;">You're In!</h1>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Thanks for joining the ZOEZONE community — high-end, classy streetwear rooted in
+        authentic Haitian heritage. Bold, punk-funk, never basic.
+      </p>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 24px;">
+        You'll be the first to hear about new drops, restocks, and offers as they happen.
+      </p>
+      <a href="https://zoezone.co" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+        Start Shopping
+      </a>
+    `,
+    "You're receiving this because you subscribed at zoezone.co."
+  );
+}
+
 export function orderConfirmationHTML({ order }) {
   const name = escapeHTML(order.customer.firstName) || 'there';
   const itemsRows = order.items
