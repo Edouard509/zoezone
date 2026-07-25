@@ -46,6 +46,51 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // ---------- forgot password ----------
+  document.getElementById('checkoutForgotPasswordLink').addEventListener('click', function (e) {
+    e.preventDefault();
+    document.querySelectorAll('#checkoutAuthWrap .auth-tab').forEach(function (t) { t.classList.remove('active'); });
+    document.querySelectorAll('#checkoutAuthWrap .auth-form').forEach(function (f) { f.classList.remove('active'); });
+    document.getElementById('checkoutForgotPasswordForm').classList.add('active');
+  });
+  document.getElementById('checkoutBackToSigninLink').addEventListener('click', function (e) {
+    e.preventDefault();
+    document.querySelectorAll('#checkoutAuthWrap .auth-form').forEach(function (f) { f.classList.remove('active'); });
+    document.querySelector('#checkoutAuthWrap .auth-tab[data-tab="signin"]').classList.add('active');
+    document.getElementById('checkoutSigninForm').classList.add('active');
+  });
+  document.getElementById('checkoutForgotPasswordForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = document.getElementById('coFpEmail').value.trim();
+    var errorEl = document.getElementById('coFpError');
+    var btn = document.getElementById('coFpSubmitBtn');
+    if (!email.includes('@')) {
+      errorEl.textContent = 'Please enter a valid email.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    errorEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    fetch('/api/auth/customer/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email }),
+    })
+      .then(function () {
+        btn.disabled = true;
+        btn.textContent = 'Link Sent';
+        errorEl.style.display = 'none';
+        ZZShop.showToast('If that email is registered, a reset link is on its way.');
+      })
+      .catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Link';
+        errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
+        errorEl.style.display = 'block';
+      });
+  });
+
   document.getElementById('checkoutSigninForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var email = document.getElementById('coSiEmail').value.trim();

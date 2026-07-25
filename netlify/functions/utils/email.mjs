@@ -97,6 +97,44 @@ export function newsletterWelcomeHTML() {
   );
 }
 
+export function passwordResetHTML({ firstName, resetUrl }) {
+  const name = escapeHTML(firstName) || 'there';
+  return emailShell(
+    `
+      <h1 style="font-size:20px;margin:0 0 16px;">Reset Your Password</h1>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 16px;">
+        Hi ${name}, we got a request to reset your ZOEZONE password. Click below to set a new one —
+        this link expires in 1 hour.
+      </p>
+      <a href="${resetUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;">
+        Reset Password
+      </a>
+      <p style="font-size:12.5px;line-height:1.6;color:#888;">
+        Didn't request this? You can safely ignore this email — your password won't change.
+      </p>
+    `,
+    "You're receiving this because a password reset was requested for your zoezone.co account."
+  );
+}
+
+export function googleOnlyAccountHTML({ firstName }) {
+  const name = escapeHTML(firstName) || 'there';
+  return emailShell(
+    `
+      <h1 style="font-size:20px;margin:0 0 16px;">You Signed Up With Google</h1>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 20px;">
+        Hi ${name}, we got a password reset request for your ZOEZONE account — but this account
+        was created using "Continue with Google," so it doesn't have a password to reset.
+        Just use the Google Sign-In button to log in instead.
+      </p>
+      <a href="https://zoezone.co/account.html" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+        Go To Sign In
+      </a>
+    `,
+    "You're receiving this because a password reset was requested for your zoezone.co account."
+  );
+}
+
 export function orderConfirmationHTML({ order }) {
   const name = escapeHTML(order.customer.firstName) || 'there';
   const itemsRows = order.items

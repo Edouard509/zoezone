@@ -103,9 +103,21 @@
       <div class="auth-field">
         <label for="siPassword">Password</label>
         <input type="password" id="siPassword" required>
+        <div style="text-align:right;margin-top:6px;"><a href="#" id="forgotPasswordLink" style="font-size:11.5px;color:#888;text-decoration:underline;">Forgot password?</a></div>
       </div>
       <div class="auth-error" id="siError">Please enter a valid email and password.</div>
       <button class="auth-submit" type="submit">Sign In</button>
+    </form>
+
+    <form class="auth-form" id="forgotPasswordForm" novalidate>
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">Enter your email and we'll send you a link to reset your password.</p>
+      <div class="auth-field">
+        <label for="fpEmail">Email</label>
+        <input type="email" id="fpEmail" required>
+      </div>
+      <div class="auth-error" id="fpError"></div>
+      <button class="auth-submit" type="submit" id="fpSubmitBtn">Send Reset Link</button>
+      <div class="auth-foot"><a href="#" id="backToSigninLink" style="text-decoration:underline;">Back to Sign In</a></div>
     </form>
 
     <form class="auth-form" id="signupForm" novalidate>
@@ -342,6 +354,51 @@
           tab.classList.add('active');
           document.getElementById(tab.dataset.tab === 'signin' ? 'signinForm' : 'signupForm').classList.add('active');
         });
+      });
+
+      // ---- forgot password ----
+      document.getElementById('forgotPasswordLink').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelectorAll('.auth-tab').forEach(function (t) { t.classList.remove('active'); });
+        document.querySelectorAll('.auth-form').forEach(function (f) { f.classList.remove('active'); });
+        document.getElementById('forgotPasswordForm').classList.add('active');
+      });
+      document.getElementById('backToSigninLink').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelectorAll('.auth-form').forEach(function (f) { f.classList.remove('active'); });
+        document.querySelector('.auth-tab[data-tab="signin"]').classList.add('active');
+        document.getElementById('signinForm').classList.add('active');
+      });
+      document.getElementById('forgotPasswordForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = document.getElementById('fpEmail').value.trim();
+        var errorEl = document.getElementById('fpError');
+        var btn = document.getElementById('fpSubmitBtn');
+        if (!email.includes('@')) {
+          errorEl.textContent = 'Please enter a valid email.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        errorEl.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        fetch('/api/auth/customer/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email }),
+        })
+          .then(function () {
+            btn.disabled = true;
+            btn.textContent = 'Link Sent';
+            errorEl.style.display = 'none';
+            ZZShop.showToast('If that email is registered, a reset link is on its way.');
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Send Reset Link';
+            errorEl.textContent = "Couldn't reach the server — check your connection and try again.";
+            errorEl.style.display = 'block';
+          });
       });
 
       // ---- sign in ----

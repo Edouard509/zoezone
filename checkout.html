@@ -123,9 +123,21 @@
           <div class="auth-field">
             <label for="coSiPassword">Password</label>
             <input type="password" id="coSiPassword" required>
+            <div style="text-align:right;margin-top:6px;"><a href="#" id="checkoutForgotPasswordLink" style="font-size:11.5px;color:#888;text-decoration:underline;">Forgot password?</a></div>
           </div>
           <div class="auth-error" id="coSiError">Please enter a valid email and password.</div>
           <button class="auth-submit" type="submit">Sign In</button>
+        </form>
+
+        <form class="auth-form" id="checkoutForgotPasswordForm" novalidate>
+          <p style="font-size:13px;color:#666;margin-bottom:16px;">Enter your email and we'll send you a link to reset your password.</p>
+          <div class="auth-field">
+            <label for="coFpEmail">Email</label>
+            <input type="email" id="coFpEmail" required>
+          </div>
+          <div class="auth-error" id="coFpError"></div>
+          <button class="auth-submit" type="submit" id="coFpSubmitBtn">Send Reset Link</button>
+          <div class="auth-foot"><a href="#" id="checkoutBackToSigninLink" style="text-decoration:underline;">Back to Sign In</a></div>
         </form>
 
         <form class="auth-form" id="checkoutSignupForm" novalidate>
