@@ -37,14 +37,14 @@ export default async (req) => {
   const myReferralCode = generateReferralCode();
 
   const rows = await database.sql`
-    INSERT INTO customers (email, password_hash, first_name, last_name, referral_code, referred_by, pending_discount_amount)
+    INSERT INTO customers (email, password_hash, first_name, last_name, referral_code, referred_by, pending_discount_percent)
     VALUES (${email}, ${passwordHash}, ${firstName}, ${lastName || null}, ${myReferralCode}, ${referrer ? referrer.id : null}, ${referrer ? 10 : 0})
-    RETURNING id, email, first_name, last_name, referral_code, pending_discount_amount
+    RETURNING id, email, first_name, last_name, referral_code, pending_discount_percent
   `;
   const customer = rows[0];
 
   if (referrer) {
-    await database.sql`UPDATE customers SET pending_discount_amount = 10 WHERE id = ${referrer.id}`;
+    await database.sql`UPDATE customers SET pending_discount_percent = 10 WHERE id = ${referrer.id}`;
   }
 
   await sendEmail({
@@ -62,7 +62,7 @@ export default async (req) => {
       firstName: customer.first_name,
       lastName: customer.last_name,
       referralCode: customer.referral_code,
-      pendingDiscountAmount: Number(customer.pending_discount_amount),
+      pendingDiscountPercent: Number(customer.pending_discount_percent),
     },
     { status: 201, headers: { 'Set-Cookie': cookieHeader('zz_customer_session', token) } }
   );

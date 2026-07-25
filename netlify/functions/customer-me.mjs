@@ -43,7 +43,7 @@ export default async (req) => {
     whatsapp: c.whatsapp,
     address: c.address,
     referralCode: c.referral_code,
-    pendingDiscountAmount: Number(c.pending_discount_amount),
+    pendingDiscountPercent: Number(c.pending_discount_percent),
     memberSince: c.created_at,
     avatarUrl: c.avatar_url,
     orders,

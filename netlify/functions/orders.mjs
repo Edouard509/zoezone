@@ -65,8 +65,10 @@ async function createOrder(req) {
       : Math.min(Number(promo.discount_value), subtotal);
     appliedPromoCode = promo.code;
   } else {
-    const rows = await database.sql`SELECT pending_discount_amount FROM customers WHERE id = ${customer.sub} LIMIT 1`;
-    if (rows.length) referralDiscountAmount = Math.min(Number(rows[0].pending_discount_amount) || 0, subtotal);
+    const rows = await database.sql`SELECT pending_discount_percent FROM customers WHERE id = ${customer.sub} LIMIT 1`;
+    if (rows.length && rows[0].pending_discount_percent > 0) {
+      referralDiscountAmount = Math.round(subtotal * (Number(rows[0].pending_discount_percent) / 100) * 100) / 100;
+    }
   }
 
   // PayPal charges a transaction fee — flat $5, decided server-side (never trust a client-submitted fee).
@@ -98,7 +100,7 @@ async function createOrder(req) {
   if (appliedPromoCode) {
     await database.sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ${appliedPromoCode}`;
   } else if (referralDiscountAmount > 0) {
-    await database.sql`UPDATE customers SET pending_discount_amount = 0 WHERE id = ${customer.sub}`;
+    await database.sql`UPDATE customers SET pending_discount_percent = 0 WHERE id = ${customer.sub}`;
   }
 
   const orderForEmail = {

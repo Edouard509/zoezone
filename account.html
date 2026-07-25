@@ -207,11 +207,11 @@
             <button class="dash-save" type="button" id="copyReferralBtn" style="margin-top:0;padding:9px 16px;">Copy</button>
           </div>
           <p style="font-size:13px;color:#666;margin-top:14px;line-height:1.5;">
-            Share this code with a friend — when they create an account with it, you both get <strong>$10 off</strong> your next order.
+            Share this code with a friend — when they create an account with it, you both get <strong>10% off</strong> your next order.
           </p>
         </div>
         <div id="discountStatusBox" style="display:none;border:1px solid var(--black);border-radius:6px;padding:18px 22px;background:var(--cream);">
-          <strong>You have $10 off ready!</strong> It'll be applied automatically at checkout on your next order.
+          <strong>You have 10% off ready!</strong> It'll be applied automatically at checkout on your next order.
         </div>
       </div>
     </div>
@@ -322,7 +322,7 @@
           var since = new Date(me.memberSince).toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
           document.getElementById('memberSinceText').textContent = 'Member since ' + since;
         }
-        document.getElementById('discountStatusBox').style.display = me.pendingDiscountAmount > 0 ? 'block' : 'none';
+        document.getElementById('discountStatusBox').style.display = me.pendingDiscountPercent > 0 ? 'block' : 'none';
 
         renderAvatar(me.avatarUrl, me.firstName);
       }

@@ -176,7 +176,7 @@
     if (existing) existing.remove();
 
     var shareMessage = "Hey! I'm shopping at ZOEZONE — use my code " + referralCode +
-      ' to get $10 off your first order (I get $10 too!): https://zoezone.co';
+      ' to get 10% off your first order (I get 10% too!): https://zoezone.co';
 
     var overlay = document.createElement('div');
     overlay.className = 'zz-referral-overlay';
@@ -185,8 +185,8 @@
       '<div class="zz-referral-modal">' +
         '<button class="zz-referral-close" type="button" aria-label="Close">&times;</button>' +
         '<div class="zz-referral-icon">🎁</div>' +
-        '<h3>Share ZOEZONE, Get $10 Off</h3>' +
-        '<p>Give this code to a friend — when they create an account with it, you <strong>both</strong> get $10 off your next order.</p>' +
+        '<h3>Share ZOEZONE, Get 10% Off</h3>' +
+        '<p>Give this code to a friend — when they create an account with it, you <strong>both</strong> get 10% off your next order.</p>' +
         '<div class="zz-referral-code-box"><span>' + referralCode + '</span><button type="button" id="zzReferralCopyBtn">Copy</button></div>' +
         '<a class="zz-referral-whatsapp" id="zzReferralWhatsappBtn" href="https://wa.me/?text=' + encodeURIComponent(shareMessage) + '" target="_blank" rel="noopener">Share on WhatsApp &rarr;</a>' +
       '</div>';

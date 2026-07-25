@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ZZShop.trackEvent('begin_checkout', { currency: 'USD', value: ZZShop.cartSubtotal(), items: items });
     });
 
-    var pendingDiscountAmount = me.pendingDiscountAmount || 0;
+    var pendingDiscountPercent = me.pendingDiscountPercent || 0;
     var appliedPromo = null; // { code, discountType, discountValue } — overrides the referral discount when set
 
     ZZShop.ready.then(function () { renderSummary(); });
@@ -285,9 +285,9 @@ document.addEventListener('DOMContentLoaded', function () {
           ? Math.round(subtotal * (appliedPromo.discountValue / 100) * 100) / 100
           : Math.min(appliedPromo.discountValue, subtotal);
         discountLabel = 'Promo (' + appliedPromo.code + ')';
-      } else if (pendingDiscountAmount > 0) {
-        discountAmount = Math.min(pendingDiscountAmount, subtotal);
-        discountLabel = 'Referral Discount';
+      } else if (pendingDiscountPercent > 0) {
+        discountAmount = Math.round(subtotal * (pendingDiscountPercent / 100) * 100) / 100;
+        discountLabel = 'Referral Discount (' + pendingDiscountPercent + '%)';
       }
       var discountedSubtotal = subtotal - discountAmount;
 
