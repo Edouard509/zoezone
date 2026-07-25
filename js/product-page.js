@@ -243,24 +243,24 @@
         var mediaHTML = '';
         if (r.mediaUrl) {
           mediaHTML = r.mediaType === 'video'
-            ? '<video src="' + r.mediaUrl + '" controls style="max-width:220px;border-radius:6px;margin-top:10px;display:block;"></video>'
-            : '<img src="' + r.mediaUrl + '" style="max-width:220px;border-radius:6px;margin-top:10px;display:block;">';
+            ? '<video src="' + ZZShop.escapeHTML(r.mediaUrl) + '" controls style="max-width:220px;border-radius:6px;margin-top:10px;display:block;"></video>'
+            : '<img src="' + ZZShop.escapeHTML(r.mediaUrl) + '" style="max-width:220px;border-radius:6px;margin-top:10px;display:block;">';
         }
         var replyHTML = r.adminReply
-          ? '<div style="margin-top:12px;padding:12px 14px;background:var(--cream);border-radius:4px;font-size:13px;"><strong>Response from ZOEZONE:</strong> ' + r.adminReply + '</div>'
+          ? '<div style="margin-top:12px;padding:12px 14px;background:var(--cream);border-radius:4px;font-size:13px;"><strong>Response from ZOEZONE:</strong> ' + ZZShop.escapeHTML(r.adminReply) + '</div>'
           : '';
         return (
           '<div class="review-card">' +
             '<div class="review-head">' +
-              '<div class="review-avatar">' + r.name.charAt(0) + '</div>' +
+              '<div class="review-avatar">' + ZZShop.escapeHTML(r.name.charAt(0)) + '</div>' +
               '<div>' +
-                '<div class="review-name">' + r.name + '</div>' +
+                '<div class="review-name">' + ZZShop.escapeHTML(r.name) + '</div>' +
                 '<div class="review-date">' + formatDate(r.createdAt) + '</div>' +
               '</div>' +
             '</div>' +
             starsHTML(r.rating) +
-            '<div class="review-title">' + r.title + '</div>' +
-            '<div class="review-body">' + r.body + '</div>' +
+            '<div class="review-title">' + ZZShop.escapeHTML(r.title) + '</div>' +
+            '<div class="review-body">' + ZZShop.escapeHTML(r.body) + '</div>' +
             mediaHTML +
             replyHTML +
           '</div>'

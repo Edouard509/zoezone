@@ -127,8 +127,8 @@
         var mediaHTML = '';
         if (r.mediaUrl) {
           mediaHTML = r.mediaType === 'video'
-            ? '<video src="' + r.mediaUrl + '" controls style="max-width:160px;border-radius:4px;margin-top:10px;"></video>'
-            : '<img src="' + r.mediaUrl + '" style="max-width:160px;border-radius:4px;margin-top:10px;">';
+            ? '<video src="' + ZZAdmin.escapeHTML(r.mediaUrl) + '" controls style="max-width:160px;border-radius:4px;margin-top:10px;"></video>'
+            : '<img src="' + ZZAdmin.escapeHTML(r.mediaUrl) + '" style="max-width:160px;border-radius:4px;margin-top:10px;">';
         }
         var replyHTML = r.adminReply
           ? '<div style="margin-top:12px;padding:12px 14px;background:var(--cream);border-radius:4px;font-size:13px;"><strong>Your reply:</strong> ' + ZZAdmin.escapeHTML(r.adminReply) + '</div>'

@@ -393,9 +393,16 @@
     });
   }
 
+  function escapeHTML(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
   // expose a small shared API for every page (cart/wishlist/search/account/category pages)
   window.ZZShop = {
     ready: ready,
+    escapeHTML: escapeHTML,
     getProducts: function () { return PRODUCTS; },
     getCart: getCart, setCart: setCart, addToCart: addToCart,
     removeFromCart: removeFromCart, setCartQty: setCartQty,

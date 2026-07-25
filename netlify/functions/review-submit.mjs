@@ -21,6 +21,9 @@ export default async (req) => {
   if (mediaType && !['image', 'video'].includes(mediaType)) {
     return json({ error: 'Invalid media type.' }, { status: 400 });
   }
+  if (mediaUrl && !/^\/api\/images\/[A-Za-z0-9._-]+\?store=review-media$/.test(mediaUrl)) {
+    return json({ error: 'Invalid media URL — please upload via the review form.' }, { status: 400 });
+  }
 
   const database = db();
 
