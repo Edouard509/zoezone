@@ -96,6 +96,7 @@ export function serializeOrder(row, items) {
     referralDiscountAmount: Number(row.referral_discount_amount || 0),
     promoCode: row.promo_code || null,
     promoDiscountAmount: Number(row.promo_discount_amount || 0),
+    paymentFeeAmount: Number(row.payment_fee_amount || 0),
     total: Number(row.total),
     status: row.status,
     createdAt: row.created_at,

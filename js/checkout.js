@@ -1,5 +1,7 @@
 // ZOEZONE — checkout: requires sign-in, shipping/location form, payment method selection, order placement
 var BUSINESS_WHATSAPP_NUMBER = '50937893926'; // country code + number, digits only, no + or spaces
+var MONCASH_RATE_HTG = 135; // USD -> HTG, update whenever the daily rate changes
+var PAYPAL_FEE = 5; // flat USD fee added when PayPal is selected
 var PAY_INFO = {
   moncash: { label: 'MonCash', number: '+509 3789 3926', qr: true },
   paypal: { label: 'PayPal', number: 'paypal.me/LakouLakayLLC', qr: false },
@@ -233,18 +235,21 @@ document.addEventListener('DOMContentLoaded', function () {
             msgEl.style.color = '#b3261e';
             msgEl.textContent = res.data.error || 'Invalid promo code.';
             renderSummary();
+            updatePaymentInfoDisplay();
             return;
           }
           appliedPromo = res.data;
           msgEl.style.color = '#1f8a45';
           msgEl.textContent = 'Code "' + res.data.code + '" applied!';
           renderSummary();
+          updatePaymentInfoDisplay();
         })
         .catch(function () {
           appliedPromo = null;
           msgEl.style.color = '#b3261e';
           msgEl.textContent = "Couldn't reach the server — try again.";
           renderSummary();
+          updatePaymentInfoDisplay();
         });
     });
 
@@ -295,8 +300,19 @@ document.addEventListener('DOMContentLoaded', function () {
         discountRow.style.display = 'none';
       }
       document.getElementById('summaryShipping').textContent = shipping === 0 ? 'Free' : '$' + shipping.toFixed(2);
-      document.getElementById('summaryTotal').textContent = '$' + (discountedSubtotal + shipping).toFixed(2);
-      return { subtotal: subtotal, shipping: shipping, total: discountedSubtotal + shipping };
+
+      var feeAmount = selectedMethod === 'paypal' ? PAYPAL_FEE : 0;
+      var feeRow = document.getElementById('summaryFeeRow');
+      if (feeAmount > 0) {
+        feeRow.style.display = '';
+        document.getElementById('summaryFee').textContent = '$' + feeAmount.toFixed(2);
+      } else {
+        feeRow.style.display = 'none';
+      }
+
+      var grandTotal = discountedSubtotal + shipping + feeAmount;
+      document.getElementById('summaryTotal').textContent = '$' + grandTotal.toFixed(2);
+      return { subtotal: subtotal, shipping: shipping, total: grandTotal };
     }
 
     // ---------- map ----------
@@ -349,11 +365,57 @@ document.addEventListener('DOMContentLoaded', function () {
     var manualPayDetail = document.getElementById('manualPayDetail');
     var cardPayDetail = document.getElementById('cardPayDetail');
 
+    function updatePaymentInfoDisplay() {
+      if (!selectedMethod || selectedMethod === 'card') return;
+      var totals = renderSummary();
+      var info = PAY_INFO[selectedMethod];
+      var html =
+        '<h4>Send payment to:</h4>' +
+        '<div class="pay-number-box"><span id="payNumberText">' + info.number + '</span><button type="button" id="copyPayNumberBtn">Copy</button></div>';
+      if (info.qr) {
+        html +=
+          '<div class="qr-wrap">' +
+            '<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(info.label + ': ' + info.number) + '" alt="' + info.label + ' QR code">' +
+            '<div class="qr-note">Scan this QR code in your ' + info.label + ' app, or send manually to the number above. Then upload your payment screenshot below.</div>' +
+          '</div>';
+      } else {
+        html += '<div class="qr-note">Send the total shown in your order summary to the ' + info.label + ' account above, then upload your payment screenshot below.</div>';
+      }
+
+      if (selectedMethod === 'moncash') {
+        var htgAmount = Math.round(totals.total * MONCASH_RATE_HTG);
+        html +=
+          '<div class="pay-number-box" style="margin-top:12px;background:var(--cream);">' +
+            '<span><strong>Send ' + htgAmount.toLocaleString() + ' HTG</strong></span>' +
+            '<button type="button" id="copyHtgBtn">Copy</button>' +
+          '</div>' +
+          '<div class="qr-note">Converted at our daily rate of 1 USD = ' + MONCASH_RATE_HTG + ' HTG (your total is $' + totals.total.toFixed(2) + '). Please send the exact HTG amount above.</div>';
+      }
+      if (selectedMethod === 'paypal') {
+        html += '<div class="qr-note" style="color:#b3261e;">A $5 transaction fee has been added to your total to cover PayPal\'s charges — your total above already includes it.</div>';
+      }
+
+      payInfoArea.innerHTML = html;
+
+      document.getElementById('copyPayNumberBtn').addEventListener('click', function () {
+        navigator.clipboard.writeText(info.number);
+        ZZShop.showToast('Copied to clipboard');
+      });
+      var copyHtgBtn = document.getElementById('copyHtgBtn');
+      if (copyHtgBtn) {
+        copyHtgBtn.addEventListener('click', function () {
+          navigator.clipboard.writeText(String(Math.round(totals.total * MONCASH_RATE_HTG)));
+          ZZShop.showToast('Copied to clipboard');
+        });
+      }
+    }
+
     document.querySelectorAll('.pay-tile').forEach(function (tile) {
       tile.addEventListener('click', function () {
         document.querySelectorAll('.pay-tile').forEach(function (t) { t.classList.remove('selected'); });
         tile.classList.add('selected');
         selectedMethod = tile.dataset.method;
+        renderSummary();
 
         if (selectedMethod === 'card') {
           manualPayDetail.classList.remove('active');
@@ -363,26 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         cardPayDetail.classList.remove('active');
         manualPayDetail.classList.add('active');
-
-        var info = PAY_INFO[selectedMethod];
-        var html =
-          '<h4>Send payment to:</h4>' +
-          '<div class="pay-number-box"><span id="payNumberText">' + info.number + '</span><button type="button" id="copyPayNumberBtn">Copy</button></div>';
-        if (info.qr) {
-          html +=
-            '<div class="qr-wrap">' +
-              '<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(info.label + ': ' + info.number) + '" alt="' + info.label + ' QR code">' +
-              '<div class="qr-note">Scan this QR code in your ' + info.label + ' app, or send manually to the number above. Then upload your payment screenshot below.</div>' +
-            '</div>';
-        } else {
-          html += '<div class="qr-note">Send the total shown in your order summary to the ' + info.label + ' account above, then upload your payment screenshot below.</div>';
-        }
-        payInfoArea.innerHTML = html;
-
-        document.getElementById('copyPayNumberBtn').addEventListener('click', function () {
-          navigator.clipboard.writeText(info.number);
-          ZZShop.showToast('Copied to clipboard');
-        });
+        updatePaymentInfoDisplay();
       });
     });
 

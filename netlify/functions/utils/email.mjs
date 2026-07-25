@@ -163,6 +163,7 @@ export function orderConfirmationHTML({ order }) {
       <table style="width:100%;font-size:13px;margin-bottom:20px;">
         <tr><td style="padding:4px 0;">Subtotal</td><td style="padding:4px 0;text-align:right;">$${order.subtotal.toFixed(2)}</td></tr>
         <tr><td style="padding:4px 0;">Shipping</td><td style="padding:4px 0;text-align:right;">${order.shipping === 0 ? 'Free' : '$' + order.shipping.toFixed(2)}</td></tr>
+        ${order.paymentFeeAmount ? `<tr><td style="padding:4px 0;">PayPal Fee</td><td style="padding:4px 0;text-align:right;">$${order.paymentFeeAmount.toFixed(2)}</td></tr>` : ''}
         <tr><td style="padding:8px 0;font-weight:700;border-top:1px solid #e7e5e1;">Total</td><td style="padding:8px 0;font-weight:700;text-align:right;border-top:1px solid #e7e5e1;">$${order.total.toFixed(2)}</td></tr>
       </table>
       <p style="font-size:13px;line-height:1.6;margin:0 0 4px;color:#555;">

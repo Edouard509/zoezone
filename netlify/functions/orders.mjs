@@ -69,17 +69,20 @@ async function createOrder(req) {
     if (rows.length) referralDiscountAmount = Math.min(Number(rows[0].pending_discount_amount) || 0, subtotal);
   }
 
+  // PayPal charges a transaction fee — flat $5, decided server-side (never trust a client-submitted fee).
+  const paymentFeeAmount = payment.method === 'paypal' ? 5 : 0;
+
   const discountedSubtotal = Math.round((subtotal - referralDiscountAmount - promoDiscountAmount) * 100) / 100;
-  const finalTotal = Math.round((discountedSubtotal + shipping) * 100) / 100;
+  const finalTotal = Math.round((discountedSubtotal + shipping + paymentFeeAmount) * 100) / 100;
 
   await database.sql`
     INSERT INTO orders
       (id, customer_id, first_name, last_name, email, whatsapp, address, notes, lat, lng, payment_method,
-       subtotal, shipping, referral_discount_amount, promo_code, promo_discount_amount, total, status)
+       subtotal, shipping, referral_discount_amount, promo_code, promo_discount_amount, payment_fee_amount, total, status)
     VALUES
       (${orderId}, ${customer.sub}, ${firstName}, ${lastName}, ${email}, ${whatsapp}, ${address}, ${notes || null},
        ${location.lat}, ${location.lng}, ${payment.method},
-       ${subtotal}, ${shipping}, ${referralDiscountAmount}, ${appliedPromoCode}, ${promoDiscountAmount}, ${finalTotal}, 'pending')
+       ${subtotal}, ${shipping}, ${referralDiscountAmount}, ${appliedPromoCode}, ${promoDiscountAmount}, ${paymentFeeAmount}, ${finalTotal}, 'pending')
   `;
 
   for (const item of items) {
@@ -104,6 +107,7 @@ async function createOrder(req) {
     items,
     subtotal: discountedSubtotal,
     shipping,
+    paymentFeeAmount,
     total: finalTotal,
   };
   await sendEmail({
@@ -113,7 +117,10 @@ async function createOrder(req) {
     fromEmail: 'orders@zoezone.co',
   });
 
-  return json({ id: orderId, referralDiscountAmount, promoDiscountAmount, subtotal: discountedSubtotal, total: finalTotal }, { status: 201 });
+  return json(
+    { id: orderId, referralDiscountAmount, promoDiscountAmount, paymentFeeAmount, subtotal: discountedSubtotal, total: finalTotal },
+    { status: 201 }
+  );
 }
 
 async function getOrder(id, req) {

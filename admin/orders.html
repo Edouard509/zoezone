@@ -220,7 +220,10 @@
           itemsHTML +
         '</div>' +
         '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>Subtotal</span><span>$' + o.subtotal.toFixed(2) + '</span></div>' +
+        (o.promoDiscountAmount > 0 ? '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#1f8a45;"><span>Promo (' + ZZAdmin.escapeHTML(o.promoCode || '') + ')</span><span>-$' + o.promoDiscountAmount.toFixed(2) + '</span></div>' : '') +
+        (o.referralDiscountAmount > 0 ? '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#1f8a45;"><span>Referral Discount</span><span>-$' + o.referralDiscountAmount.toFixed(2) + '</span></div>' : '') +
         '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>Shipping</span><span>$' + o.shipping.toFixed(2) + '</span></div>' +
+        (o.paymentFeeAmount > 0 ? '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>PayPal Fee</span><span>$' + o.paymentFeeAmount.toFixed(2) + '</span></div>' : '') +
         '<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding:8px 0;border-top:1px solid var(--line);margin-top:6px;"><span>Total</span><span>$' + o.total.toFixed(2) + '</span></div>' +
         '<div style="font-size:13px;color:#555;margin-top:10px;">Payment method: ' + (PAY_LABEL[o.payment.method] || o.payment.method) + '</div>';
 
