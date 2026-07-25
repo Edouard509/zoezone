@@ -363,10 +363,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var selectedMethod = null;
     var payInfoArea = document.getElementById('payInfoArea');
     var manualPayDetail = document.getElementById('manualPayDetail');
-    var cardPayDetail = document.getElementById('cardPayDetail');
 
     function updatePaymentInfoDisplay() {
-      if (!selectedMethod || selectedMethod === 'card') return;
+      if (!selectedMethod) return;
       var totals = renderSummary();
       var info = PAY_INFO[selectedMethod];
       var html =
@@ -412,18 +411,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.pay-tile').forEach(function (tile) {
       tile.addEventListener('click', function () {
+        if (tile.classList.contains('disabled')) return;
         document.querySelectorAll('.pay-tile').forEach(function (t) { t.classList.remove('selected'); });
         tile.classList.add('selected');
         selectedMethod = tile.dataset.method;
         renderSummary();
-
-        if (selectedMethod === 'card') {
-          manualPayDetail.classList.remove('active');
-          cardPayDetail.classList.add('active');
-          return;
-        }
-
-        cardPayDetail.classList.remove('active');
         manualPayDetail.classList.add('active');
         updatePaymentInfoDisplay();
       });
@@ -467,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!address) errors.push('address');
       if (!coords) errors.push('a pinned location on the map (drag the pin, or use Find My Address / Use My Current Location)');
       if (!selectedMethod) errors.push('a payment method');
-      if (selectedMethod && selectedMethod !== 'card' && !hasScreenshot) errors.push('a payment screenshot');
+      if (selectedMethod && !hasScreenshot) errors.push('a payment screenshot');
 
       if (errors.length) {
         errorEl.textContent = 'Please add: ' + errors.join(', ') + '.';
@@ -550,9 +542,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var variant = bits.length ? ' (' + bits.join('/') + ')' : '';
         return it.qty + 'x ' + it.name + variant;
       }).join(', ');
-      var methodLabel = order.payment.method === 'card'
-        ? 'Credit / Debit Card'
-        : (PAY_INFO[order.payment.method] ? PAY_INFO[order.payment.method].label : order.payment.method);
+      var methodLabel = PAY_INFO[order.payment.method] ? PAY_INFO[order.payment.method].label : order.payment.method;
 
       var message =
         'Hi ZOEZONE! I just placed an order.\n' +
@@ -565,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '\nItems: ' + itemsList +
         '\nTotal: $' + order.total.toFixed(2) +
         '\nPayment Method: ' + methodLabel +
-        (order.payment.method !== 'card' ? '\n(Payment screenshot attached below)' : '') +
+        '\n(Payment screenshot attached below)' +
         '\n\nPlease confirm my order and let me know the ETA. Thank you!';
 
       document.getElementById('whatsappShareBtn').href =

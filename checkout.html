@@ -205,7 +205,8 @@
               <img src="assets/pay-moncash.png" alt="MonCash">
               <div class="pt-name">MonCash</div>
             </div>
-            <div class="pay-tile" data-method="card">
+            <div class="pay-tile disabled" data-method="card" aria-disabled="true">
+              <span class="pt-soon">Coming Soon</span>
               <svg class="pt-card-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
               <div class="pt-name">Credit / Debit</div>
             </div>
@@ -228,20 +229,6 @@
               <div class="up-hint">JPG or PNG — this stays on your device until you attach it in WhatsApp</div>
               <img class="upload-preview" id="uploadPreview" alt="Payment screenshot preview">
             </div>
-          </div>
-
-          <!-- card (no gateway yet — fields are cosmetic and never stored) -->
-          <div class="pay-detail" id="cardPayDetail">
-            <h4>Card Details</h4>
-            <div class="card-fields">
-              <div class="field"><label for="ccName">Name on Card</label><input type="text" id="ccName" autocomplete="cc-name"></div>
-              <div class="field"><label for="ccNumber">Card Number</label><input type="text" id="ccNumber" placeholder="•••• •••• •••• ••••" autocomplete="cc-number" inputmode="numeric"></div>
-              <div class="field-row">
-                <div class="field"><label for="ccExpiry">Expiry</label><input type="text" id="ccExpiry" placeholder="MM/YY" autocomplete="cc-exp"></div>
-                <div class="field"><label for="ccCvc">CVC</label><input type="text" id="ccCvc" placeholder="•••" autocomplete="cc-csc" inputmode="numeric"></div>
-              </div>
-            </div>
-            <div class="card-note">This is a demo store — card payments are simulated and never stored or charged. We'll follow up on WhatsApp to confirm your order.</div>
           </div>
 
           <div class="checkout-error" id="checkoutError"></div>
