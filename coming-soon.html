@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZOEZONE — Coming Soon</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="96x96" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;background:#0b0b0b;color:#fff;font-family:'Inter',Arial,sans-serif;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:56px 20px;text-align:center;
+  }
+  .hero-img{
+    max-width:280px;width:100%;height:auto;margin-bottom:30px;
+    border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.55);
+  }
+  h1{
+    font-family:'Anton',sans-serif;font-size:clamp(30px,7vw,46px);letter-spacing:2px;
+    margin:0 0 14px;text-transform:uppercase;
+  }
+  p.sub{color:#999;font-size:14px;max-width:420px;line-height:1.7;margin:0 0 46px;}
+  .made-in{
+    font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:56px;
+  }
+  .admin-toggle{
+    background:none;border:none;color:#666;font-size:11px;text-transform:uppercase;
+    letter-spacing:1px;cursor:pointer;text-decoration:underline;padding:6px;
+  }
+  .admin-toggle:hover{color:#999;}
+  .login-panel{
+    display:none;margin-top:22px;width:100%;max-width:280px;text-align:left;
+    border:1px solid #262626;border-radius:8px;padding:22px;background:#131313;
+  }
+  .login-panel.open{display:block;}
+  .login-panel label{
+    display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;
+    color:#777;margin-bottom:6px;
+  }
+  .login-panel .field{margin-bottom:14px;}
+  .login-panel input{
+    width:100%;padding:11px 13px;border:1px solid #2e2e2e;background:#000;color:#fff;
+    border-radius:5px;font-size:14px;font-family:inherit;
+  }
+  .login-panel input:focus{outline:none;border-color:#666;}
+  .login-panel button[type="submit"]{
+    width:100%;padding:13px;background:#fff;color:#0b0b0b;border:none;border-radius:5px;
+    font-weight:700;text-transform:uppercase;letter-spacing:.6px;font-size:12px;
+    cursor:pointer;margin-top:4px;
+  }
+  .login-panel button[type="submit"]:disabled{opacity:.5;cursor:not-allowed;}
+  .login-error{color:#ff6b6b;font-size:12px;margin-top:10px;display:none;line-height:1.5;}
+</style>
+</head>
+<body>
+
+  <img class="hero-img" src="assets/coming-soon-hero.jpg" alt="ZOEZONE">
+
+  <h1>Coming Soon</h1>
+  <p class="sub">High-end, classy streetwear rooted in authentic Haitian heritage — bold, punk-funk, never basic. We're putting the finishing touches on things. Check back soon.</p>
+  <div class="made-in">Made In Haiti</div>
+
+  <button type="button" class="admin-toggle" id="adminToggle">Administrator? Log In</button>
+
+  <form class="login-panel" id="loginPanel" novalidate>
+    <div class="field">
+      <label for="loginUser">Username</label>
+      <input type="text" id="loginUser" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label for="loginPass">Password</label>
+      <input type="password" id="loginPass" autocomplete="current-password" required>
+    </div>
+    <button type="submit" id="loginSubmitBtn">Log In</button>
+    <div class="login-error" id="loginError">Incorrect username or password.</div>
+  </form>
+
+  <script>
+    document.getElementById('adminToggle').addEventListener('click', function () {
+      var panel = document.getElementById('loginPanel');
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) document.getElementById('loginUser').focus();
+    });
+
+    document.getElementById('loginPanel').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var username = document.getElementById('loginUser').value.trim();
+      var password = document.getElementById('loginPass').value;
+      var errorEl = document.getElementById('loginError');
+      var btn = document.getElementById('loginSubmitBtn');
+
+      errorEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Checking…';
+
+      fetch('/api/site-unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ username: username, password: password }),
+      })
+        .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (res) {
+          btn.disabled = false;
+          btn.textContent = 'Log In';
+          if (!res.ok) {
+            errorEl.textContent = res.data.error || 'Incorrect username or password.';
+            errorEl.style.display = 'block';
+            return;
+          }
+          window.location.href = '/';
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Log In';
+          errorEl.textContent = "Couldn't reach the server — please try again.";
+          errorEl.style.display = 'block';
+        });
+    });
+  </script>
+</body>
+</html>
